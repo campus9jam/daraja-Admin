@@ -15,7 +15,7 @@ export function SimpleTablePage<T extends Record<string, any>>({
       const { data, error } = await supabase
         .from(table as any).select(select).order(orderBy, { ascending: false }).limit(100);
       if (error) throw error;
-      return data as T[];
+      return data as unknown as T[];
     },
   });
   return (
