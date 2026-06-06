@@ -1,14 +1,18 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { PageHeader } from "@/components/admin/page-header";
 import { Card, CardContent } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useCurrentUser } from "@/hooks/use-current-user";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/admin/settings")({ component: SettingsPage });
 
 function SettingsPage() {
+  const { data: me } = useCurrentUser();
+  const qc = useQueryClient();
   const { data, isLoading } = useQuery({
     queryKey: ["feature-flags"],
     queryFn: async () => {
@@ -17,6 +21,14 @@ function SettingsPage() {
       if (error) throw error;
       return data;
     },
+  });
+  const toggle = useMutation({
+    mutationFn: async ({ id, enabled }: { id: string; enabled: boolean }) => {
+      const { error } = await supabase.from("feature_flags").update({ enabled }).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["feature-flags"] }); toast.success("Flag updated"); },
+    onError: (e: any) => toast.error(e.message),
   });
   return (
     <div>
@@ -32,11 +44,18 @@ function SettingsPage() {
                   <div className="text-sm font-medium font-mono">{f.key}</div>
                   {f.description && <div className="text-xs text-muted-foreground mt-0.5">{f.description}</div>}
                 </div>
-                <Switch checked={!!f.enabled} disabled />
+                <Switch
+                  checked={!!f.enabled}
+                  disabled={!me?.isSuperAdmin || toggle.isPending}
+                  onCheckedChange={(v) => toggle.mutate({ id: f.id, enabled: v })}
+                />
               </div>
             ))}
         </CardContent>
       </Card>
+      {!me?.isSuperAdmin && (
+        <p className="text-xs text-muted-foreground mt-3">Only super admins can change feature flags.</p>
+      )}
     </div>
   );
 }
