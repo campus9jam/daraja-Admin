@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 export type AppRole =
   | "super_admin" | "admin" | "moderator" | "support"
-  | "tailor" | "delivery_agent" | "vendor" | "customer";
+  | "tailor" | "logistics" | "designer" | "vendor" | "customer";
 
 export const STAFF_ROLES: AppRole[] = ["super_admin", "admin", "moderator", "support"];
 

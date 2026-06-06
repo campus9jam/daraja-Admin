@@ -17,14 +17,14 @@ function SettingsPage() {
     queryKey: ["feature-flags"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("feature_flags").select("id, key, enabled, description").order("key");
+        .from("feature_flags").select("id, key, is_enabled, description").order("key");
       if (error) throw error;
       return data;
     },
   });
   const toggle = useMutation({
     mutationFn: async ({ id, enabled }: { id: string; enabled: boolean }) => {
-      const { error } = await supabase.from("feature_flags").update({ enabled }).eq("id", id);
+      const { error } = await supabase.from("feature_flags").update({ is_enabled: enabled }).eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["feature-flags"] }); toast.success("Flag updated"); },
@@ -45,7 +45,7 @@ function SettingsPage() {
                   {f.description && <div className="text-xs text-muted-foreground mt-0.5">{f.description}</div>}
                 </div>
                 <Switch
-                  checked={!!f.enabled}
+                  checked={!!f.is_enabled}
                   disabled={!me?.isSuperAdmin || toggle.isPending}
                   onCheckedChange={(v) => toggle.mutate({ id: f.id, enabled: v })}
                 />

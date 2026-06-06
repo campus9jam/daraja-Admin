@@ -11,7 +11,7 @@ import { useCurrentUser, type AppRole } from "@/hooks/use-current-user";
 import { toast } from "sonner";
 import { X } from "lucide-react";
 
-const ALL_ROLES: AppRole[] = ["super_admin","admin","moderator","support","tailor","delivery_agent","vendor","customer"];
+const ALL_ROLES: AppRole[] = ["super_admin","admin","moderator","support","tailor","logistics","designer","vendor","customer"];
 
 export const Route = createFileRoute("/_authenticated/admin/users")({ component: UsersPage });
 
