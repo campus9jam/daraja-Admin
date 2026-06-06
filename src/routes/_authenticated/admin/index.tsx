@@ -36,7 +36,7 @@ function Overview() {
     queryKey: ["recent-orders"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("orders").select("id, order_number, status, total_amount, created_at")
+        .from("orders").select("id, order_number, status, grand_total, currency, created_at")
         .order("created_at", { ascending: false }).limit(8);
       if (error) throw error;
       return data;
@@ -68,7 +68,7 @@ function Overview() {
                 <div key={o.id} className="flex items-center justify-between px-2 py-2.5 text-sm">
                   <div className="font-mono text-xs text-muted-foreground">{o.order_number ?? o.id.slice(0, 8)}</div>
                   <div className="capitalize text-muted-foreground">{o.status}</div>
-                  <div className="font-medium">KES {Number(o.total_amount ?? 0).toLocaleString()}</div>
+                  <div className="font-medium">{o.currency ?? "KES"} {Number(o.grand_total ?? 0).toLocaleString()}</div>
                 </div>
               ))}
             </div>
