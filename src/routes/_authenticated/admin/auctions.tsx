@@ -16,7 +16,7 @@ function AuctionsPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("auctions")
-        .select("*")
+        .select("id, status, starting_price, current_bid, reserve_price, total_bids, starts_at, ends_at, product_id")
         .order("created_at", { ascending: false }).limit(100);
       if (error) throw error;
       return data;
@@ -29,11 +29,13 @@ function AuctionsPage() {
         loading={isLoading}
         rows={data ?? []}
         columns={[
-          { key: "title", header: "Title", render: (r: any) => <span className="font-medium">{r.title ?? r.id.slice(0,8)}</span> },
+          { key: "id", header: "Auction", render: (r: any) => <span className="font-mono text-xs">{r.id.slice(0,8)}</span> },
+          { key: "product_id", header: "Product", render: (r: any) => <span className="font-mono text-xs">{(r.product_id ?? "—").slice(0,8)}</span> },
           { key: "status", header: "Status", render: (r: any) => <StatusSelect table="auctions" id={r.id} value={r.status} options={AUCTION_STATUSES} queryKey={KEY} /> },
-          { key: "starting_price", header: "Start", render: (r: any) => `${r.currency ?? "KES"} ${Number(r.starting_price ?? r.start_price ?? 0).toLocaleString()}` },
-          { key: "current_bid", header: "Current", render: (r: any) => `${r.currency ?? "KES"} ${Number(r.current_bid ?? r.highest_bid ?? 0).toLocaleString()}` },
-          { key: "end_time", header: "Ends", render: (r: any) => r.end_time ? new Date(r.end_time).toLocaleString() : (r.ends_at ? new Date(r.ends_at).toLocaleString() : "—") },
+          { key: "starting_price", header: "Start", render: (r: any) => `KES ${Number(r.starting_price ?? 0).toLocaleString()}` },
+          { key: "current_bid", header: "Current", render: (r: any) => `KES ${Number(r.current_bid ?? 0).toLocaleString()}` },
+          { key: "total_bids", header: "Bids", render: (r: any) => r.total_bids ?? 0 },
+          { key: "ends_at", header: "Ends", render: (r: any) => r.ends_at ? new Date(r.ends_at).toLocaleString() : "—" },
         ]}
       />
     </div>
