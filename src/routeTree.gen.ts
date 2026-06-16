@@ -24,6 +24,7 @@ import { Route as AuthenticatedAdminProductsRouteImport } from './routes/_authen
 import { Route as AuthenticatedAdminOrdersRouteImport } from './routes/_authenticated/admin/orders'
 import { Route as AuthenticatedAdminModerationRouteImport } from './routes/_authenticated/admin/moderation'
 import { Route as AuthenticatedAdminLogisticsRouteImport } from './routes/_authenticated/admin/logistics'
+import { Route as AuthenticatedAdminAuditRouteImport } from './routes/_authenticated/admin/audit'
 import { Route as AuthenticatedAdminAuctionsRouteImport } from './routes/_authenticated/admin/auctions'
 import { Route as AuthenticatedAdminAnalyticsRouteImport } from './routes/_authenticated/admin/analytics'
 import { Route as AuthenticatedAdminAiRouteImport } from './routes/_authenticated/admin/ai'
@@ -111,6 +112,11 @@ const AuthenticatedAdminLogisticsRoute =
     path: '/logistics',
     getParentRoute: () => AuthenticatedAdminRouteRoute,
   } as any)
+const AuthenticatedAdminAuditRoute = AuthenticatedAdminAuditRouteImport.update({
+  id: '/audit',
+  path: '/audit',
+  getParentRoute: () => AuthenticatedAdminRouteRoute,
+} as any)
 const AuthenticatedAdminAuctionsRoute =
   AuthenticatedAdminAuctionsRouteImport.update({
     id: '/auctions',
@@ -136,6 +142,7 @@ export interface FileRoutesByFullPath {
   '/admin/ai': typeof AuthenticatedAdminAiRoute
   '/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
   '/admin/auctions': typeof AuthenticatedAdminAuctionsRoute
+  '/admin/audit': typeof AuthenticatedAdminAuditRoute
   '/admin/logistics': typeof AuthenticatedAdminLogisticsRoute
   '/admin/moderation': typeof AuthenticatedAdminModerationRoute
   '/admin/orders': typeof AuthenticatedAdminOrdersRoute
@@ -154,6 +161,7 @@ export interface FileRoutesByTo {
   '/admin/ai': typeof AuthenticatedAdminAiRoute
   '/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
   '/admin/auctions': typeof AuthenticatedAdminAuctionsRoute
+  '/admin/audit': typeof AuthenticatedAdminAuditRoute
   '/admin/logistics': typeof AuthenticatedAdminLogisticsRoute
   '/admin/moderation': typeof AuthenticatedAdminModerationRoute
   '/admin/orders': typeof AuthenticatedAdminOrdersRoute
@@ -175,6 +183,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/ai': typeof AuthenticatedAdminAiRoute
   '/_authenticated/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
   '/_authenticated/admin/auctions': typeof AuthenticatedAdminAuctionsRoute
+  '/_authenticated/admin/audit': typeof AuthenticatedAdminAuditRoute
   '/_authenticated/admin/logistics': typeof AuthenticatedAdminLogisticsRoute
   '/_authenticated/admin/moderation': typeof AuthenticatedAdminModerationRoute
   '/_authenticated/admin/orders': typeof AuthenticatedAdminOrdersRoute
@@ -196,6 +205,7 @@ export interface FileRouteTypes {
     | '/admin/ai'
     | '/admin/analytics'
     | '/admin/auctions'
+    | '/admin/audit'
     | '/admin/logistics'
     | '/admin/moderation'
     | '/admin/orders'
@@ -214,6 +224,7 @@ export interface FileRouteTypes {
     | '/admin/ai'
     | '/admin/analytics'
     | '/admin/auctions'
+    | '/admin/audit'
     | '/admin/logistics'
     | '/admin/moderation'
     | '/admin/orders'
@@ -234,6 +245,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/ai'
     | '/_authenticated/admin/analytics'
     | '/_authenticated/admin/auctions'
+    | '/_authenticated/admin/audit'
     | '/_authenticated/admin/logistics'
     | '/_authenticated/admin/moderation'
     | '/_authenticated/admin/orders'
@@ -360,6 +372,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminLogisticsRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
+    '/_authenticated/admin/audit': {
+      id: '/_authenticated/admin/audit'
+      path: '/audit'
+      fullPath: '/admin/audit'
+      preLoaderRoute: typeof AuthenticatedAdminAuditRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
     '/_authenticated/admin/auctions': {
       id: '/_authenticated/admin/auctions'
       path: '/auctions'
@@ -388,6 +407,7 @@ interface AuthenticatedAdminRouteRouteChildren {
   AuthenticatedAdminAiRoute: typeof AuthenticatedAdminAiRoute
   AuthenticatedAdminAnalyticsRoute: typeof AuthenticatedAdminAnalyticsRoute
   AuthenticatedAdminAuctionsRoute: typeof AuthenticatedAdminAuctionsRoute
+  AuthenticatedAdminAuditRoute: typeof AuthenticatedAdminAuditRoute
   AuthenticatedAdminLogisticsRoute: typeof AuthenticatedAdminLogisticsRoute
   AuthenticatedAdminModerationRoute: typeof AuthenticatedAdminModerationRoute
   AuthenticatedAdminOrdersRoute: typeof AuthenticatedAdminOrdersRoute
@@ -406,6 +426,7 @@ const AuthenticatedAdminRouteRouteChildren: AuthenticatedAdminRouteRouteChildren
     AuthenticatedAdminAiRoute: AuthenticatedAdminAiRoute,
     AuthenticatedAdminAnalyticsRoute: AuthenticatedAdminAnalyticsRoute,
     AuthenticatedAdminAuctionsRoute: AuthenticatedAdminAuctionsRoute,
+    AuthenticatedAdminAuditRoute: AuthenticatedAdminAuditRoute,
     AuthenticatedAdminLogisticsRoute: AuthenticatedAdminLogisticsRoute,
     AuthenticatedAdminModerationRoute: AuthenticatedAdminModerationRoute,
     AuthenticatedAdminOrdersRoute: AuthenticatedAdminOrdersRoute,

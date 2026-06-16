@@ -1,7 +1,7 @@
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import {
   LayoutDashboard, Users, Package, ShoppingCart, Scissors, Truck,
-  Gavel, Bot, Coins, ShieldAlert, BarChart3, LifeBuoy, Store, Settings, LogOut,
+  Gavel, Bot, Coins, ShieldAlert, BarChart3, LifeBuoy, Store, Settings, LogOut, FileClock,
 } from "lucide-react";
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
@@ -48,7 +48,10 @@ const groups = [
   },
   {
     label: "System",
-    items: [{ title: "Settings", url: "/admin/settings", icon: Settings }],
+    items: [
+      { title: "Audit Log", url: "/admin/audit", icon: FileClock },
+      { title: "Settings", url: "/admin/settings", icon: Settings },
+    ],
   },
 ];
 
