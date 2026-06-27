@@ -7,6 +7,11 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { toast } from "sonner";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useState } from "react";
 
 const ORDER_STATUSES = ["pending","confirmed","processing","shipped","delivered","cancelled","refunded","disputed"] as const;
 type OrderStatus = typeof ORDER_STATUSES[number];
@@ -16,6 +21,7 @@ export const Route = createFileRoute("/_authenticated/admin/orders")({ component
 function OrdersPage() {
   const { data: me } = useCurrentUser();
   const qc = useQueryClient();
+  const [openId, setOpenId] = useState<string | null>(null);
   const { data, isLoading } = useQuery({
     queryKey: ["admin-orders"],
     queryFn: async () => {
@@ -45,7 +51,11 @@ function OrdersPage() {
         loading={isLoading}
         rows={data ?? []}
         columns={[
-          { key: "order_number", header: "Order", render: (r: any) => <span className="font-mono text-xs">{r.order_number ?? r.id.slice(0,8)}</span> },
+          { key: "order_number", header: "Order", render: (r: any) => (
+            <button className="font-mono text-xs hover:text-primary underline-offset-2 hover:underline" onClick={() => setOpenId(r.id)}>
+              {r.order_number ?? r.id.slice(0,8)}
+            </button>
+          ) },
           { key: "status", header: "Status", render: (r: any) => me?.isStaff ? (
               <Select value={r.status} onValueChange={(v) => updateStatus.mutate({ id: r.id, status: v as OrderStatus })}>
                 <SelectTrigger className="h-7 w-36 text-xs capitalize"><SelectValue /></SelectTrigger>
@@ -60,6 +70,109 @@ function OrdersPage() {
           { key: "created_at", header: "Date", render: (r: any) => new Date(r.created_at).toLocaleDateString() },
         ]}
       />
+      <OrderDrawer id={openId} onClose={() => setOpenId(null)} />
     </div>
+  );
+}
+
+function OrderDrawer({ id, onClose }: { id: string | null; onClose: () => void }) {
+  const qc = useQueryClient();
+  const { data: me } = useCurrentUser();
+  const [refundAmt, setRefundAmt] = useState("");
+  const [refundReason, setRefundReason] = useState("");
+
+  const { data, isLoading } = useQuery({
+    enabled: !!id,
+    queryKey: ["admin-order", id],
+    queryFn: async () => {
+      const [order, items, payments, refunds] = await Promise.all([
+        supabase.from("orders").select("*").eq("id", id!).maybeSingle(),
+        supabase.from("order_items").select("*").eq("order_id", id!),
+        supabase.from("payments").select("*").eq("order_id", id!).order("created_at", { ascending: false }),
+        supabase.from("refunds").select("*").eq("order_id", id!).order("created_at", { ascending: false }),
+      ]);
+      return {
+        order: order.data, items: items.data ?? [],
+        payments: payments.data ?? [], refunds: refunds.data ?? [],
+      };
+    },
+  });
+
+  const refund = useMutation({
+    mutationFn: async () => {
+      const payment = data?.payments[0];
+      const { error } = await supabase.from("refunds").insert({
+        order_id: id!, payment_id: payment?.id ?? null,
+        amount: Number(refundAmt), reason: refundReason || null, status: "pending",
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin-order", id] });
+      setRefundAmt(""); setRefundReason("");
+      toast.success("Refund request created");
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
+  return (
+    <Sheet open={!!id} onOpenChange={(o) => !o && onClose()}>
+      <SheetContent className="w-full sm:max-w-xl overflow-y-auto">
+        <SheetHeader>
+          <SheetTitle>Order {data?.order?.order_number ?? id?.slice(0,8)}</SheetTitle>
+          <SheetDescription>{data?.order ? `${data.order.currency} ${Number(data.order.grand_total).toLocaleString()} · ${new Date(data.order.created_at).toLocaleString()}` : "Loading…"}</SheetDescription>
+        </SheetHeader>
+        {isLoading ? <div className="py-8 text-sm text-muted-foreground">Loading…</div> : (
+          <div className="mt-6 space-y-6">
+            <section>
+              <h3 className="text-xs uppercase tracking-wider text-muted-foreground mb-2">Line items</h3>
+              <div className="border border-border/60 rounded-md divide-y divide-border/60">
+                {data?.items.length === 0 && <div className="p-3 text-xs text-muted-foreground">No items.</div>}
+                {data?.items.map((it: any) => (
+                  <div key={it.id} className="p-3 flex justify-between text-sm">
+                    <div><div>{it.title}</div><div className="text-xs text-muted-foreground">Qty {it.quantity} × {Number(it.unit_price).toLocaleString()}</div></div>
+                    <div className="font-mono">{Number(it.line_total).toLocaleString()}</div>
+                  </div>
+                ))}
+              </div>
+            </section>
+            <section>
+              <h3 className="text-xs uppercase tracking-wider text-muted-foreground mb-2">Payments</h3>
+              <div className="border border-border/60 rounded-md divide-y divide-border/60">
+                {data?.payments.length === 0 && <div className="p-3 text-xs text-muted-foreground">No payments.</div>}
+                {data?.payments.map((p: any) => (
+                  <div key={p.id} className="p-3 flex justify-between text-sm">
+                    <div><div className="capitalize">{p.provider} <Badge variant="outline" className="ml-1 capitalize">{p.status}</Badge></div><div className="text-xs text-muted-foreground font-mono">{p.provider_reference ?? "—"}</div></div>
+                    <div className="font-mono">{p.currency} {Number(p.amount).toLocaleString()}</div>
+                  </div>
+                ))}
+              </div>
+            </section>
+            <section>
+              <h3 className="text-xs uppercase tracking-wider text-muted-foreground mb-2">Refunds</h3>
+              <div className="border border-border/60 rounded-md divide-y divide-border/60">
+                {data?.refunds.length === 0 && <div className="p-3 text-xs text-muted-foreground">No refunds.</div>}
+                {data?.refunds.map((r: any) => (
+                  <div key={r.id} className="p-3 flex justify-between text-sm">
+                    <div><div className="capitalize">{r.status}</div><div className="text-xs text-muted-foreground">{r.reason ?? "—"}</div></div>
+                    <div className="font-mono">{Number(r.amount).toLocaleString()}</div>
+                  </div>
+                ))}
+              </div>
+              {me?.isAdmin && (
+                <div className="mt-3 space-y-2 border border-border/60 rounded-md p-3">
+                  <div className="text-xs font-medium">Issue refund</div>
+                  <div className="grid grid-cols-3 gap-2">
+                    <div className="col-span-1"><Label className="text-xs">Amount</Label><Input type="number" value={refundAmt} onChange={(e) => setRefundAmt(e.target.value)} /></div>
+                    <div className="col-span-2"><Label className="text-xs">Reason</Label><Input value={refundReason} onChange={(e) => setRefundReason(e.target.value)} /></div>
+                  </div>
+                  <Button size="sm" disabled={!refundAmt || refund.isPending} onClick={() => refund.mutate()}>Create refund</Button>
+                </div>
+              )}
+            </section>
+          </div>
+        )}
+      </SheetContent>
+    </Sheet>
   );
 }
