@@ -24,8 +24,11 @@ import { Route as AuthenticatedAdminProductsRouteImport } from './routes/_authen
 import { Route as AuthenticatedAdminOrdersRouteImport } from './routes/_authenticated/admin/orders'
 import { Route as AuthenticatedAdminModerationRouteImport } from './routes/_authenticated/admin/moderation'
 import { Route as AuthenticatedAdminLogisticsRouteImport } from './routes/_authenticated/admin/logistics'
+import { Route as AuthenticatedAdminFabricsRouteImport } from './routes/_authenticated/admin/fabrics'
+import { Route as AuthenticatedAdminCategoriesRouteImport } from './routes/_authenticated/admin/categories'
 import { Route as AuthenticatedAdminAuditRouteImport } from './routes/_authenticated/admin/audit'
 import { Route as AuthenticatedAdminAuctionsRouteImport } from './routes/_authenticated/admin/auctions'
+import { Route as AuthenticatedAdminAnnouncementsRouteImport } from './routes/_authenticated/admin/announcements'
 import { Route as AuthenticatedAdminAnalyticsRouteImport } from './routes/_authenticated/admin/analytics'
 import { Route as AuthenticatedAdminAiRouteImport } from './routes/_authenticated/admin/ai'
 
@@ -112,6 +115,18 @@ const AuthenticatedAdminLogisticsRoute =
     path: '/logistics',
     getParentRoute: () => AuthenticatedAdminRouteRoute,
   } as any)
+const AuthenticatedAdminFabricsRoute =
+  AuthenticatedAdminFabricsRouteImport.update({
+    id: '/fabrics',
+    path: '/fabrics',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
+const AuthenticatedAdminCategoriesRoute =
+  AuthenticatedAdminCategoriesRouteImport.update({
+    id: '/categories',
+    path: '/categories',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
 const AuthenticatedAdminAuditRoute = AuthenticatedAdminAuditRouteImport.update({
   id: '/audit',
   path: '/audit',
@@ -121,6 +136,12 @@ const AuthenticatedAdminAuctionsRoute =
   AuthenticatedAdminAuctionsRouteImport.update({
     id: '/auctions',
     path: '/auctions',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
+const AuthenticatedAdminAnnouncementsRoute =
+  AuthenticatedAdminAnnouncementsRouteImport.update({
+    id: '/announcements',
+    path: '/announcements',
     getParentRoute: () => AuthenticatedAdminRouteRoute,
   } as any)
 const AuthenticatedAdminAnalyticsRoute =
@@ -141,8 +162,11 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AuthenticatedAdminRouteRouteWithChildren
   '/admin/ai': typeof AuthenticatedAdminAiRoute
   '/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
+  '/admin/announcements': typeof AuthenticatedAdminAnnouncementsRoute
   '/admin/auctions': typeof AuthenticatedAdminAuctionsRoute
   '/admin/audit': typeof AuthenticatedAdminAuditRoute
+  '/admin/categories': typeof AuthenticatedAdminCategoriesRoute
+  '/admin/fabrics': typeof AuthenticatedAdminFabricsRoute
   '/admin/logistics': typeof AuthenticatedAdminLogisticsRoute
   '/admin/moderation': typeof AuthenticatedAdminModerationRoute
   '/admin/orders': typeof AuthenticatedAdminOrdersRoute
@@ -160,8 +184,11 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/admin/ai': typeof AuthenticatedAdminAiRoute
   '/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
+  '/admin/announcements': typeof AuthenticatedAdminAnnouncementsRoute
   '/admin/auctions': typeof AuthenticatedAdminAuctionsRoute
   '/admin/audit': typeof AuthenticatedAdminAuditRoute
+  '/admin/categories': typeof AuthenticatedAdminCategoriesRoute
+  '/admin/fabrics': typeof AuthenticatedAdminFabricsRoute
   '/admin/logistics': typeof AuthenticatedAdminLogisticsRoute
   '/admin/moderation': typeof AuthenticatedAdminModerationRoute
   '/admin/orders': typeof AuthenticatedAdminOrdersRoute
@@ -182,8 +209,11 @@ export interface FileRoutesById {
   '/_authenticated/admin': typeof AuthenticatedAdminRouteRouteWithChildren
   '/_authenticated/admin/ai': typeof AuthenticatedAdminAiRoute
   '/_authenticated/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
+  '/_authenticated/admin/announcements': typeof AuthenticatedAdminAnnouncementsRoute
   '/_authenticated/admin/auctions': typeof AuthenticatedAdminAuctionsRoute
   '/_authenticated/admin/audit': typeof AuthenticatedAdminAuditRoute
+  '/_authenticated/admin/categories': typeof AuthenticatedAdminCategoriesRoute
+  '/_authenticated/admin/fabrics': typeof AuthenticatedAdminFabricsRoute
   '/_authenticated/admin/logistics': typeof AuthenticatedAdminLogisticsRoute
   '/_authenticated/admin/moderation': typeof AuthenticatedAdminModerationRoute
   '/_authenticated/admin/orders': typeof AuthenticatedAdminOrdersRoute
@@ -204,8 +234,11 @@ export interface FileRouteTypes {
     | '/admin'
     | '/admin/ai'
     | '/admin/analytics'
+    | '/admin/announcements'
     | '/admin/auctions'
     | '/admin/audit'
+    | '/admin/categories'
+    | '/admin/fabrics'
     | '/admin/logistics'
     | '/admin/moderation'
     | '/admin/orders'
@@ -223,8 +256,11 @@ export interface FileRouteTypes {
     | '/auth'
     | '/admin/ai'
     | '/admin/analytics'
+    | '/admin/announcements'
     | '/admin/auctions'
     | '/admin/audit'
+    | '/admin/categories'
+    | '/admin/fabrics'
     | '/admin/logistics'
     | '/admin/moderation'
     | '/admin/orders'
@@ -244,8 +280,11 @@ export interface FileRouteTypes {
     | '/_authenticated/admin'
     | '/_authenticated/admin/ai'
     | '/_authenticated/admin/analytics'
+    | '/_authenticated/admin/announcements'
     | '/_authenticated/admin/auctions'
     | '/_authenticated/admin/audit'
+    | '/_authenticated/admin/categories'
+    | '/_authenticated/admin/fabrics'
     | '/_authenticated/admin/logistics'
     | '/_authenticated/admin/moderation'
     | '/_authenticated/admin/orders'
@@ -372,6 +411,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminLogisticsRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
+    '/_authenticated/admin/fabrics': {
+      id: '/_authenticated/admin/fabrics'
+      path: '/fabrics'
+      fullPath: '/admin/fabrics'
+      preLoaderRoute: typeof AuthenticatedAdminFabricsRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
+    '/_authenticated/admin/categories': {
+      id: '/_authenticated/admin/categories'
+      path: '/categories'
+      fullPath: '/admin/categories'
+      preLoaderRoute: typeof AuthenticatedAdminCategoriesRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
     '/_authenticated/admin/audit': {
       id: '/_authenticated/admin/audit'
       path: '/audit'
@@ -384,6 +437,13 @@ declare module '@tanstack/react-router' {
       path: '/auctions'
       fullPath: '/admin/auctions'
       preLoaderRoute: typeof AuthenticatedAdminAuctionsRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
+    '/_authenticated/admin/announcements': {
+      id: '/_authenticated/admin/announcements'
+      path: '/announcements'
+      fullPath: '/admin/announcements'
+      preLoaderRoute: typeof AuthenticatedAdminAnnouncementsRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
     '/_authenticated/admin/analytics': {
@@ -406,8 +466,11 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedAdminRouteRouteChildren {
   AuthenticatedAdminAiRoute: typeof AuthenticatedAdminAiRoute
   AuthenticatedAdminAnalyticsRoute: typeof AuthenticatedAdminAnalyticsRoute
+  AuthenticatedAdminAnnouncementsRoute: typeof AuthenticatedAdminAnnouncementsRoute
   AuthenticatedAdminAuctionsRoute: typeof AuthenticatedAdminAuctionsRoute
   AuthenticatedAdminAuditRoute: typeof AuthenticatedAdminAuditRoute
+  AuthenticatedAdminCategoriesRoute: typeof AuthenticatedAdminCategoriesRoute
+  AuthenticatedAdminFabricsRoute: typeof AuthenticatedAdminFabricsRoute
   AuthenticatedAdminLogisticsRoute: typeof AuthenticatedAdminLogisticsRoute
   AuthenticatedAdminModerationRoute: typeof AuthenticatedAdminModerationRoute
   AuthenticatedAdminOrdersRoute: typeof AuthenticatedAdminOrdersRoute
@@ -425,8 +488,11 @@ const AuthenticatedAdminRouteRouteChildren: AuthenticatedAdminRouteRouteChildren
   {
     AuthenticatedAdminAiRoute: AuthenticatedAdminAiRoute,
     AuthenticatedAdminAnalyticsRoute: AuthenticatedAdminAnalyticsRoute,
+    AuthenticatedAdminAnnouncementsRoute: AuthenticatedAdminAnnouncementsRoute,
     AuthenticatedAdminAuctionsRoute: AuthenticatedAdminAuctionsRoute,
     AuthenticatedAdminAuditRoute: AuthenticatedAdminAuditRoute,
+    AuthenticatedAdminCategoriesRoute: AuthenticatedAdminCategoriesRoute,
+    AuthenticatedAdminFabricsRoute: AuthenticatedAdminFabricsRoute,
     AuthenticatedAdminLogisticsRoute: AuthenticatedAdminLogisticsRoute,
     AuthenticatedAdminModerationRoute: AuthenticatedAdminModerationRoute,
     AuthenticatedAdminOrdersRoute: AuthenticatedAdminOrdersRoute,
