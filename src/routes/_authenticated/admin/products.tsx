@@ -122,8 +122,8 @@ function ProductDrawer({ id, onClose, canEdit }: { id: string | null; onClose: (
   });
 
   const update = useMutation({
-    mutationFn: async (patch: Record<string, any>) => {
-      const { error } = await supabase.from("products").update(patch).eq("id", id!);
+    mutationFn: async (patch: any) => {
+      const { error } = await (supabase.from("products") as any).update(patch).eq("id", id!);
       if (error) throw error;
     },
     onSuccess: () => {
