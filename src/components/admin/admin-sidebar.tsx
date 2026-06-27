@@ -2,6 +2,7 @@ import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import {
   LayoutDashboard, Users, Package, ShoppingCart, Scissors, Truck,
   Gavel, Bot, Coins, ShieldAlert, BarChart3, LifeBuoy, Store, Settings, LogOut, FileClock,
+  FolderTree, Megaphone, Layers,
 } from "lucide-react";
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
@@ -18,6 +19,7 @@ const groups = [
     label: "Commerce",
     items: [
       { title: "Products", url: "/admin/products", icon: Package },
+      { title: "Categories", url: "/admin/categories", icon: FolderTree },
       { title: "Orders", url: "/admin/orders", icon: ShoppingCart },
       { title: "Auctions", url: "/admin/auctions", icon: Gavel },
     ],
@@ -26,6 +28,7 @@ const groups = [
     label: "Operations",
     items: [
       { title: "Tailoring", url: "/admin/tailoring", icon: Scissors },
+      { title: "Fabrics", url: "/admin/fabrics", icon: Layers },
       { title: "Logistics", url: "/admin/logistics", icon: Truck },
       { title: "Vendors", url: "/admin/vendors", icon: Store },
     ],
@@ -49,6 +52,7 @@ const groups = [
   {
     label: "System",
     items: [
+      { title: "Announcements", url: "/admin/announcements", icon: Megaphone },
       { title: "Audit Log", url: "/admin/audit", icon: FileClock },
       { title: "Settings", url: "/admin/settings", icon: Settings },
     ],
