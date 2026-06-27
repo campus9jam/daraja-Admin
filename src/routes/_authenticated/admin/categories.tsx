@@ -32,8 +32,8 @@ function CategoriesPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("categories")
-        .select("id, name, slug, description, is_active, sort_order, created_at")
-        .order("sort_order", { ascending: true })
+        .select("id, name, slug, description, is_active, display_order, created_at")
+        .order("display_order", { ascending: true })
         .limit(200);
       if (error) throw error;
       return data;
@@ -80,7 +80,7 @@ function CategoriesPage() {
           { key: "name", header: "Name" },
           { key: "slug", header: "Slug", render: (r: any) => <span className="font-mono text-xs text-muted-foreground">{r.slug}</span> },
           { key: "description", header: "Description", render: (r: any) => <span className="text-muted-foreground line-clamp-1">{r.description ?? "—"}</span> },
-          { key: "sort_order", header: "Order", render: (r: any) => r.sort_order ?? 0 },
+          { key: "display_order", header: "Order", render: (r: any) => r.display_order ?? 0 },
           {
             key: "is_active",
             header: "Active",
