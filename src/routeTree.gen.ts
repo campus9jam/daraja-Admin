@@ -27,6 +27,7 @@ import { Route as AuthenticatedAdminLogisticsRouteImport } from './routes/_authe
 import { Route as AuthenticatedAdminCategoriesRouteImport } from './routes/_authenticated/admin/categories'
 import { Route as AuthenticatedAdminAuditRouteImport } from './routes/_authenticated/admin/audit'
 import { Route as AuthenticatedAdminAuctionsRouteImport } from './routes/_authenticated/admin/auctions'
+import { Route as AuthenticatedAdminAnnouncementsRouteImport } from './routes/_authenticated/admin/announcements'
 import { Route as AuthenticatedAdminAnalyticsRouteImport } from './routes/_authenticated/admin/analytics'
 import { Route as AuthenticatedAdminAiRouteImport } from './routes/_authenticated/admin/ai'
 
@@ -130,6 +131,12 @@ const AuthenticatedAdminAuctionsRoute =
     path: '/auctions',
     getParentRoute: () => AuthenticatedAdminRouteRoute,
   } as any)
+const AuthenticatedAdminAnnouncementsRoute =
+  AuthenticatedAdminAnnouncementsRouteImport.update({
+    id: '/announcements',
+    path: '/announcements',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
 const AuthenticatedAdminAnalyticsRoute =
   AuthenticatedAdminAnalyticsRouteImport.update({
     id: '/analytics',
@@ -148,6 +155,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AuthenticatedAdminRouteRouteWithChildren
   '/admin/ai': typeof AuthenticatedAdminAiRoute
   '/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
+  '/admin/announcements': typeof AuthenticatedAdminAnnouncementsRoute
   '/admin/auctions': typeof AuthenticatedAdminAuctionsRoute
   '/admin/audit': typeof AuthenticatedAdminAuditRoute
   '/admin/categories': typeof AuthenticatedAdminCategoriesRoute
@@ -168,6 +176,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/admin/ai': typeof AuthenticatedAdminAiRoute
   '/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
+  '/admin/announcements': typeof AuthenticatedAdminAnnouncementsRoute
   '/admin/auctions': typeof AuthenticatedAdminAuctionsRoute
   '/admin/audit': typeof AuthenticatedAdminAuditRoute
   '/admin/categories': typeof AuthenticatedAdminCategoriesRoute
@@ -191,6 +200,7 @@ export interface FileRoutesById {
   '/_authenticated/admin': typeof AuthenticatedAdminRouteRouteWithChildren
   '/_authenticated/admin/ai': typeof AuthenticatedAdminAiRoute
   '/_authenticated/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
+  '/_authenticated/admin/announcements': typeof AuthenticatedAdminAnnouncementsRoute
   '/_authenticated/admin/auctions': typeof AuthenticatedAdminAuctionsRoute
   '/_authenticated/admin/audit': typeof AuthenticatedAdminAuditRoute
   '/_authenticated/admin/categories': typeof AuthenticatedAdminCategoriesRoute
@@ -214,6 +224,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/admin/ai'
     | '/admin/analytics'
+    | '/admin/announcements'
     | '/admin/auctions'
     | '/admin/audit'
     | '/admin/categories'
@@ -234,6 +245,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/admin/ai'
     | '/admin/analytics'
+    | '/admin/announcements'
     | '/admin/auctions'
     | '/admin/audit'
     | '/admin/categories'
@@ -256,6 +268,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin'
     | '/_authenticated/admin/ai'
     | '/_authenticated/admin/analytics'
+    | '/_authenticated/admin/announcements'
     | '/_authenticated/admin/auctions'
     | '/_authenticated/admin/audit'
     | '/_authenticated/admin/categories'
@@ -406,6 +419,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminAuctionsRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
+    '/_authenticated/admin/announcements': {
+      id: '/_authenticated/admin/announcements'
+      path: '/announcements'
+      fullPath: '/admin/announcements'
+      preLoaderRoute: typeof AuthenticatedAdminAnnouncementsRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
     '/_authenticated/admin/analytics': {
       id: '/_authenticated/admin/analytics'
       path: '/analytics'
@@ -426,6 +446,7 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedAdminRouteRouteChildren {
   AuthenticatedAdminAiRoute: typeof AuthenticatedAdminAiRoute
   AuthenticatedAdminAnalyticsRoute: typeof AuthenticatedAdminAnalyticsRoute
+  AuthenticatedAdminAnnouncementsRoute: typeof AuthenticatedAdminAnnouncementsRoute
   AuthenticatedAdminAuctionsRoute: typeof AuthenticatedAdminAuctionsRoute
   AuthenticatedAdminAuditRoute: typeof AuthenticatedAdminAuditRoute
   AuthenticatedAdminCategoriesRoute: typeof AuthenticatedAdminCategoriesRoute
@@ -446,6 +467,7 @@ const AuthenticatedAdminRouteRouteChildren: AuthenticatedAdminRouteRouteChildren
   {
     AuthenticatedAdminAiRoute: AuthenticatedAdminAiRoute,
     AuthenticatedAdminAnalyticsRoute: AuthenticatedAdminAnalyticsRoute,
+    AuthenticatedAdminAnnouncementsRoute: AuthenticatedAdminAnnouncementsRoute,
     AuthenticatedAdminAuctionsRoute: AuthenticatedAdminAuctionsRoute,
     AuthenticatedAdminAuditRoute: AuthenticatedAdminAuditRoute,
     AuthenticatedAdminCategoriesRoute: AuthenticatedAdminCategoriesRoute,
