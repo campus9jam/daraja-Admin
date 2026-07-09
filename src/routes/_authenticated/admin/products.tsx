@@ -105,7 +105,8 @@ function ProductsPage() {
   );
 }
 
-const PRODUCT_STATUSES = ["draft","active","archived","sold_out","scheduled"] as const;
+// Must match public.product_status enum in the database.
+const PRODUCT_STATUSES = ["draft","pending_review","active","rejected","archived","out_of_stock"] as const;
 
 function ProductDrawer({ id, onClose, canEdit }: { id: string | null; onClose: () => void; canEdit: boolean }) {
   const qc = useQueryClient();
