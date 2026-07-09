@@ -140,6 +140,8 @@ function ProductDrawer({ id, onClose, canEdit }: { id: string | null; onClose: (
 
   const upload = useMutation({
     mutationFn: async (file: File) => {
+      if (!file.type.startsWith("image/")) throw new Error("Only image files are allowed.");
+      if (file.size > 5 * 1024 * 1024) throw new Error("Image must be smaller than 5 MB.");
       const path = `${id}/${Date.now()}-${file.name.replace(/[^a-z0-9.]/gi, "_")}`;
       const { error: upErr } = await supabase.storage.from("products").upload(path, file, { upsert: false });
       if (upErr) throw upErr;
