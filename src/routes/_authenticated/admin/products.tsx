@@ -45,10 +45,18 @@ function ProductsPage() {
 
   const create = useMutation({
     mutationFn: async () => {
+      const title = form.title.trim();
+      if (!title) throw new Error("Title is required.");
+      const price = Number(form.base_price);
+      if (form.base_price !== "" && (!Number.isFinite(price) || price < 0)) {
+        throw new Error("Base price must be a non-negative number.");
+      }
       const slug = `${slugify(form.title)}-${Math.random().toString(36).slice(2, 6)}`;
       const { error } = await supabase.from("products").insert({
-        title: form.title, slug, description: form.description || null,
-        base_price: Number(form.base_price) || 0, currency: form.currency, status: "draft",
+        title, slug, description: form.description.trim() || null,
+        base_price: Number.isFinite(price) ? price : 0,
+        currency: form.currency.trim().toUpperCase() || "KES",
+        status: "draft",
       });
       if (error) throw error;
     },
