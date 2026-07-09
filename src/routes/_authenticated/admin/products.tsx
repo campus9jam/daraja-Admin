@@ -110,7 +110,7 @@ const PRODUCT_STATUSES = ["draft","pending_review","active","rejected","archived
 
 function ProductDrawer({ id, onClose, canEdit }: { id: string | null; onClose: () => void; canEdit: boolean }) {
   const qc = useQueryClient();
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, error, refetch } = useQuery({
     enabled: !!id,
     queryKey: ["admin-product", id],
     queryFn: async () => {
@@ -118,6 +118,9 @@ function ProductDrawer({ id, onClose, canEdit }: { id: string | null; onClose: (
         supabase.from("products").select("*").eq("id", id!).maybeSingle(),
         supabase.from("product_media").select("*").eq("product_id", id!).order("display_order"),
       ]);
+      if (p.error) throw p.error;
+      if (m.error) throw m.error;
+      if (!p.data) throw new Error("Product not found");
       return { product: p.data, media: m.data ?? [] };
     },
   });
@@ -164,6 +167,12 @@ function ProductDrawer({ id, onClose, canEdit }: { id: string | null; onClose: (
   const titleVal = local.title ?? p?.title ?? "";
   const priceVal = local.base_price ?? (p?.base_price?.toString() ?? "");
   const descVal = local.description ?? p?.description ?? "";
+  const titleTrimmed = titleVal.trim();
+  const priceNum = Number(priceVal);
+  const priceValid = priceVal !== "" && Number.isFinite(priceNum) && priceNum >= 0;
+  const titleValid = titleTrimmed.length > 0 && titleTrimmed.length <= 200;
+  const hasEdits = Object.keys(local).length > 0;
+  const canSave = canEdit && hasEdits && titleValid && priceValid && !update.isPending;
 
   return (
     <Sheet open={!!id} onOpenChange={(o) => !o && (setLocal({}), onClose())}>
@@ -172,13 +181,34 @@ function ProductDrawer({ id, onClose, canEdit }: { id: string | null; onClose: (
           <SheetTitle>{p?.title ?? "Product"}</SheetTitle>
           <SheetDescription className="font-mono text-xs">{p?.slug}</SheetDescription>
         </SheetHeader>
-        {isLoading || !p ? <div className="py-8 text-sm text-muted-foreground">Loading…</div> : (
+        {isLoading ? (
+          <div className="py-8 text-sm text-muted-foreground">Loading product…</div>
+        ) : isError ? (
+          <div className="py-8 space-y-3">
+            <div className="text-sm text-destructive">Failed to load product: {(error as any)?.message ?? "Unknown error"}</div>
+            <Button size="sm" variant="outline" onClick={() => refetch()}>Retry</Button>
+          </div>
+        ) : !p ? (
+          <div className="py-8 text-sm text-muted-foreground">Product not found.</div>
+        ) : (
           <div className="mt-6 space-y-6">
             <section className="space-y-3">
-              <div><Label>Title</Label><Input disabled={!canEdit} value={titleVal} onChange={(e) => setLocal({ ...local, title: e.target.value })} /></div>
+              <div>
+                <Label>Title</Label>
+                <Input disabled={!canEdit} value={titleVal} onChange={(e) => setLocal({ ...local, title: e.target.value })} />
+                {!titleValid && local.title !== undefined && (
+                  <p className="text-xs text-destructive mt-1">Title must be 1–200 characters.</p>
+                )}
+              </div>
               <div><Label>Description</Label><Textarea disabled={!canEdit} rows={4} value={descVal} onChange={(e) => setLocal({ ...local, description: e.target.value })} /></div>
               <div className="grid grid-cols-2 gap-3">
-                <div><Label>Base price ({p.currency})</Label><Input disabled={!canEdit} type="number" value={priceVal} onChange={(e) => setLocal({ ...local, base_price: e.target.value })} /></div>
+                <div>
+                  <Label>Base price ({p.currency})</Label>
+                  <Input disabled={!canEdit} type="number" min="0" step="0.01" value={priceVal} onChange={(e) => setLocal({ ...local, base_price: e.target.value })} />
+                  {!priceValid && local.base_price !== undefined && (
+                    <p className="text-xs text-destructive mt-1">Price must be a non-negative number.</p>
+                  )}
+                </div>
                 <div>
                   <Label>Status</Label>
                   <Select disabled={!canEdit} value={p.status} onValueChange={(v) => update.mutate({ status: v })}>
@@ -188,11 +218,11 @@ function ProductDrawer({ id, onClose, canEdit }: { id: string | null; onClose: (
                 </div>
               </div>
               {canEdit && (
-                <Button size="sm" disabled={update.isPending || Object.keys(local).length === 0} onClick={() => {
+                <Button size="sm" disabled={!canSave} onClick={() => {
                   const patch: any = {};
-                  if (local.title !== undefined) patch.title = local.title;
+                  if (local.title !== undefined) patch.title = titleTrimmed;
                   if (local.description !== undefined) patch.description = local.description;
-                  if (local.base_price !== undefined) patch.base_price = Number(local.base_price);
+                  if (local.base_price !== undefined) patch.base_price = priceNum;
                   update.mutate(patch, { onSuccess: () => setLocal({}) });
                 }}>Save changes</Button>
               )}
