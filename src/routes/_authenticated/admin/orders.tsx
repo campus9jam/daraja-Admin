@@ -81,7 +81,7 @@ function OrderDrawer({ id, onClose }: { id: string | null; onClose: () => void }
   const [refundAmt, setRefundAmt] = useState("");
   const [refundReason, setRefundReason] = useState("");
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, error, refetch } = useQuery({
     enabled: !!id,
     queryKey: ["admin-order", id],
     queryFn: async () => {
@@ -91,6 +91,11 @@ function OrderDrawer({ id, onClose }: { id: string | null; onClose: () => void }
         supabase.from("payments").select("*").eq("order_id", id!).order("created_at", { ascending: false }),
         supabase.from("refunds").select("*").eq("order_id", id!).order("created_at", { ascending: false }),
       ]);
+      if (order.error) throw order.error;
+      if (items.error) throw items.error;
+      if (payments.error) throw payments.error;
+      if (refunds.error) throw refunds.error;
+      if (!order.data) throw new Error("Order not found");
       return {
         order: order.data, items: items.data ?? [],
         payments: payments.data ?? [], refunds: refunds.data ?? [],
@@ -98,12 +103,20 @@ function OrderDrawer({ id, onClose }: { id: string | null; onClose: () => void }
     },
   });
 
+  const paidTotal = (data?.payments ?? []).filter((p: any) => p.status === "paid").reduce((s: number, p: any) => s + Number(p.amount ?? 0), 0);
+  const refundedTotal = (data?.refunds ?? []).filter((r: any) => r.status !== "failed" && r.status !== "cancelled").reduce((s: number, r: any) => s + Number(r.amount ?? 0), 0);
+  const refundable = Math.max(0, paidTotal - refundedTotal);
+  const refundAmtNum = Number(refundAmt);
+  const refundValid = refundAmt !== "" && Number.isFinite(refundAmtNum) && refundAmtNum > 0 && refundAmtNum <= refundable;
+
   const refund = useMutation({
     mutationFn: async () => {
+      if (!refundValid) throw new Error(`Refund must be between 0 and ${refundable}.`);
       const payment = data?.payments[0];
+      if (!payment) throw new Error("No payment to refund against.");
       const { error } = await supabase.from("refunds").insert({
         order_id: id!, payment_id: payment?.id ?? null,
-        amount: Number(refundAmt), reason: refundReason || null, status: "pending",
+        amount: refundAmtNum, reason: refundReason.trim() || null, status: "pending",
       });
       if (error) throw error;
     },
@@ -122,7 +135,16 @@ function OrderDrawer({ id, onClose }: { id: string | null; onClose: () => void }
           <SheetTitle>Order {data?.order?.order_number ?? id?.slice(0,8)}</SheetTitle>
           <SheetDescription>{data?.order ? `${data.order.currency} ${Number(data.order.grand_total).toLocaleString()} · ${new Date(data.order.created_at).toLocaleString()}` : "Loading…"}</SheetDescription>
         </SheetHeader>
-        {isLoading ? <div className="py-8 text-sm text-muted-foreground">Loading…</div> : (
+        {isLoading ? (
+          <div className="py-8 text-sm text-muted-foreground">Loading order…</div>
+        ) : isError ? (
+          <div className="py-8 space-y-3">
+            <div className="text-sm text-destructive">Failed to load order: {(error as any)?.message ?? "Unknown error"}</div>
+            <Button size="sm" variant="outline" onClick={() => refetch()}>Retry</Button>
+          </div>
+        ) : !data?.order ? (
+          <div className="py-8 text-sm text-muted-foreground">Order not found.</div>
+        ) : (
           <div className="mt-6 space-y-6">
             <section>
               <h3 className="text-xs uppercase tracking-wider text-muted-foreground mb-2">Line items</h3>
@@ -161,12 +183,26 @@ function OrderDrawer({ id, onClose }: { id: string | null; onClose: () => void }
               </div>
               {me?.isAdmin && (
                 <div className="mt-3 space-y-2 border border-border/60 rounded-md p-3">
-                  <div className="text-xs font-medium">Issue refund</div>
+                  <div className="flex items-center justify-between">
+                    <div className="text-xs font-medium">Issue refund</div>
+                    <div className="text-xs text-muted-foreground">Refundable: {data?.order?.currency} {refundable.toLocaleString()}</div>
+                  </div>
                   <div className="grid grid-cols-3 gap-2">
-                    <div className="col-span-1"><Label className="text-xs">Amount</Label><Input type="number" value={refundAmt} onChange={(e) => setRefundAmt(e.target.value)} /></div>
+                    <div className="col-span-1">
+                      <Label className="text-xs">Amount</Label>
+                      <Input type="number" min="0" step="0.01" max={refundable} value={refundAmt} onChange={(e) => setRefundAmt(e.target.value)} />
+                    </div>
                     <div className="col-span-2"><Label className="text-xs">Reason</Label><Input value={refundReason} onChange={(e) => setRefundReason(e.target.value)} /></div>
                   </div>
-                  <Button size="sm" disabled={!refundAmt || refund.isPending} onClick={() => refund.mutate()}>Create refund</Button>
+                  {refundAmt !== "" && !refundValid && (
+                    <p className="text-xs text-destructive">Enter an amount between 0 and {refundable}.</p>
+                  )}
+                  {refundable === 0 && (
+                    <p className="text-xs text-muted-foreground">Nothing to refund on this order.</p>
+                  )}
+                  <Button size="sm" disabled={!refundValid || refund.isPending || refundable === 0} onClick={() => refund.mutate()}>
+                    {refund.isPending ? "Creating…" : "Create refund"}
+                  </Button>
                 </div>
               )}
             </section>
