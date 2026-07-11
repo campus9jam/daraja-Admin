@@ -140,7 +140,7 @@ function TicketDrawer({ id }: { id: string }) {
   });
 
   const setPriority = useMutation({
-    mutationFn: async (priority: string) => {
+    mutationFn: async (priority: "low" | "normal" | "high" | "urgent") => {
       const before = { priority: ticket?.priority };
       const { error } = await supabase.from("support_tickets").update({ priority }).eq("id", id);
       if (error) throw error;
@@ -161,8 +161,9 @@ function TicketDrawer({ id }: { id: string }) {
       const trimmed = body.trim();
       if (!trimmed) throw new Error("Message cannot be empty");
       if (trimmed.length > 8000) throw new Error("Message too long (8000 char limit)");
+      if (!me?.id) throw new Error("Not signed in");
       const { error } = await supabase.from("support_messages").insert({
-        ticket_id: id, sender_id: me?.id, body: trimmed, is_internal: isInternal,
+        ticket_id: id, sender_id: me.id, body: trimmed, is_internal: isInternal,
       });
       if (error) throw error;
       await writeAudit(isInternal ? "ticket.note" : "ticket.reply", null, { length: trimmed.length });
@@ -208,7 +209,7 @@ function TicketDrawer({ id }: { id: string }) {
         </div>
         <div>
           <Label className="text-xs text-muted-foreground">Priority</Label>
-          <Select value={ticket.priority ?? "normal"} onValueChange={(v) => setPriority.mutate(v)}>
+          <Select value={ticket.priority ?? "normal"} onValueChange={(v) => setPriority.mutate(v as any)}>
             <SelectTrigger className="h-9 capitalize"><SelectValue /></SelectTrigger>
             <SelectContent>
               {PRIORITIES.map((p) => <SelectItem key={p} value={p} className="capitalize">{p}</SelectItem>)}
