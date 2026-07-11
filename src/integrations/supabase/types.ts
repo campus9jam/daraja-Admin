@@ -2458,6 +2458,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      dispatch_edge: {
+        Args: { _fn: string; _payload: Json }
+        Returns: undefined
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
