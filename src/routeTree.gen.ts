@@ -17,7 +17,6 @@ import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authentic
 import { Route as AuthenticatedAdminVendorsRouteImport } from './routes/_authenticated/admin/vendors'
 import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated/admin/users'
 import { Route as AuthenticatedAdminTailoringRouteImport } from './routes/_authenticated/admin/tailoring'
-import { Route as AuthenticatedAdminSupportRouteImport } from './routes/_authenticated/admin/support'
 import { Route as AuthenticatedAdminSettingsRouteImport } from './routes/_authenticated/admin/settings'
 import { Route as AuthenticatedAdminRewardsRouteImport } from './routes/_authenticated/admin/rewards'
 import { Route as AuthenticatedAdminProductsRouteImport } from './routes/_authenticated/admin/products'
@@ -71,12 +70,6 @@ const AuthenticatedAdminTailoringRoute =
   AuthenticatedAdminTailoringRouteImport.update({
     id: '/tailoring',
     path: '/tailoring',
-    getParentRoute: () => AuthenticatedAdminRouteRoute,
-  } as any)
-const AuthenticatedAdminSupportRoute =
-  AuthenticatedAdminSupportRouteImport.update({
-    id: '/support',
-    path: '/support',
     getParentRoute: () => AuthenticatedAdminRouteRoute,
   } as any)
 const AuthenticatedAdminSettingsRoute =
@@ -173,7 +166,6 @@ export interface FileRoutesByFullPath {
   '/admin/products': typeof AuthenticatedAdminProductsRoute
   '/admin/rewards': typeof AuthenticatedAdminRewardsRoute
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
-  '/admin/support': typeof AuthenticatedAdminSupportRoute
   '/admin/tailoring': typeof AuthenticatedAdminTailoringRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/admin/vendors': typeof AuthenticatedAdminVendorsRoute
@@ -195,7 +187,6 @@ export interface FileRoutesByTo {
   '/admin/products': typeof AuthenticatedAdminProductsRoute
   '/admin/rewards': typeof AuthenticatedAdminRewardsRoute
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
-  '/admin/support': typeof AuthenticatedAdminSupportRoute
   '/admin/tailoring': typeof AuthenticatedAdminTailoringRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/admin/vendors': typeof AuthenticatedAdminVendorsRoute
@@ -220,7 +211,6 @@ export interface FileRoutesById {
   '/_authenticated/admin/products': typeof AuthenticatedAdminProductsRoute
   '/_authenticated/admin/rewards': typeof AuthenticatedAdminRewardsRoute
   '/_authenticated/admin/settings': typeof AuthenticatedAdminSettingsRoute
-  '/_authenticated/admin/support': typeof AuthenticatedAdminSupportRoute
   '/_authenticated/admin/tailoring': typeof AuthenticatedAdminTailoringRoute
   '/_authenticated/admin/users': typeof AuthenticatedAdminUsersRoute
   '/_authenticated/admin/vendors': typeof AuthenticatedAdminVendorsRoute
@@ -245,7 +235,6 @@ export interface FileRouteTypes {
     | '/admin/products'
     | '/admin/rewards'
     | '/admin/settings'
-    | '/admin/support'
     | '/admin/tailoring'
     | '/admin/users'
     | '/admin/vendors'
@@ -267,7 +256,6 @@ export interface FileRouteTypes {
     | '/admin/products'
     | '/admin/rewards'
     | '/admin/settings'
-    | '/admin/support'
     | '/admin/tailoring'
     | '/admin/users'
     | '/admin/vendors'
@@ -291,7 +279,6 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/products'
     | '/_authenticated/admin/rewards'
     | '/_authenticated/admin/settings'
-    | '/_authenticated/admin/support'
     | '/_authenticated/admin/tailoring'
     | '/_authenticated/admin/users'
     | '/_authenticated/admin/vendors'
@@ -360,13 +347,6 @@ declare module '@tanstack/react-router' {
       path: '/tailoring'
       fullPath: '/admin/tailoring'
       preLoaderRoute: typeof AuthenticatedAdminTailoringRouteImport
-      parentRoute: typeof AuthenticatedAdminRouteRoute
-    }
-    '/_authenticated/admin/support': {
-      id: '/_authenticated/admin/support'
-      path: '/support'
-      fullPath: '/admin/support'
-      preLoaderRoute: typeof AuthenticatedAdminSupportRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
     '/_authenticated/admin/settings': {
@@ -477,7 +457,6 @@ interface AuthenticatedAdminRouteRouteChildren {
   AuthenticatedAdminProductsRoute: typeof AuthenticatedAdminProductsRoute
   AuthenticatedAdminRewardsRoute: typeof AuthenticatedAdminRewardsRoute
   AuthenticatedAdminSettingsRoute: typeof AuthenticatedAdminSettingsRoute
-  AuthenticatedAdminSupportRoute: typeof AuthenticatedAdminSupportRoute
   AuthenticatedAdminTailoringRoute: typeof AuthenticatedAdminTailoringRoute
   AuthenticatedAdminUsersRoute: typeof AuthenticatedAdminUsersRoute
   AuthenticatedAdminVendorsRoute: typeof AuthenticatedAdminVendorsRoute
@@ -499,7 +478,6 @@ const AuthenticatedAdminRouteRouteChildren: AuthenticatedAdminRouteRouteChildren
     AuthenticatedAdminProductsRoute: AuthenticatedAdminProductsRoute,
     AuthenticatedAdminRewardsRoute: AuthenticatedAdminRewardsRoute,
     AuthenticatedAdminSettingsRoute: AuthenticatedAdminSettingsRoute,
-    AuthenticatedAdminSupportRoute: AuthenticatedAdminSupportRoute,
     AuthenticatedAdminTailoringRoute: AuthenticatedAdminTailoringRoute,
     AuthenticatedAdminUsersRoute: AuthenticatedAdminUsersRoute,
     AuthenticatedAdminVendorsRoute: AuthenticatedAdminVendorsRoute,
