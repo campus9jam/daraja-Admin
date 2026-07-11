@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "@tanstack/react-router";
+import { useAdminRealtime } from "@/hooks/use-admin-realtime";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   component: AdminLayout,
@@ -16,6 +17,7 @@ function AdminLayout() {
   const crumb = path.replace(/^\/admin\/?/, "") || "Dashboard";
   const { data: me, isLoading } = useCurrentUser();
   const navigate = useNavigate();
+  useAdminRealtime(!!me?.isStaff);
 
   if (isLoading) {
     return <div className="min-h-screen flex items-center justify-center text-sm text-muted-foreground">Loading workspace…</div>;
