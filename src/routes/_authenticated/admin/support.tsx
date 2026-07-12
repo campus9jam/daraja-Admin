@@ -132,7 +132,7 @@ function TicketDrawer({ id }: { id: string }) {
 
   const assign = useMutation({
     mutationFn: async (assignee: string | null) => {
-      const { error } = await supabase.rpc("support_ticket_assign", { _id: id, _assignee: assignee });
+      const { error } = await supabase.rpc("support_ticket_assign", { _id: id, _assignee: assignee as any });
       if (error) throw error;
     },
     onSuccess: () => {
@@ -146,7 +146,7 @@ function TicketDrawer({ id }: { id: string }) {
 
   const changeStatus = useMutation({
     mutationFn: async (next: string) => {
-      const { error } = await supabase.rpc("support_ticket_transition", { _id: id, _new_status: next, _reason: null });
+      const { error } = await supabase.rpc("support_ticket_transition", { _id: id, _new_status: next } as any);
       if (error) throw error;
     },
     onSuccess: () => {
