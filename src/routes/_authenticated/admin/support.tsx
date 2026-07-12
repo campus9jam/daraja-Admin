@@ -18,6 +18,13 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 const TICKET_STATUSES = ["open", "pending", "resolved", "closed", "escalated"] as const;
+const TRANSITIONS: Record<string, string[]> = {
+  open:      ["pending", "escalated", "resolved", "closed"],
+  pending:   ["open", "escalated", "resolved", "closed"],
+  escalated: ["pending", "resolved", "closed"],
+  resolved:  ["open", "closed"],
+  closed:    ["open"],
+};
 const PRIORITIES = ["low", "normal", "high", "urgent"] as const;
 const PRIORITY_COLOR: Record<string, string> = {
   low: "bg-muted text-muted-foreground",
@@ -64,7 +71,7 @@ function SupportPage() {
             ),
           },
           { key: "priority", header: "Priority", render: (r: any) => <Badge variant="outline" className={`capitalize ${PRIORITY_COLOR[r.priority ?? "normal"] ?? ""}`}>{r.priority ?? "normal"}</Badge> },
-          { key: "status", header: "Status", render: (r: any) => <StatusSelect table="support_tickets" id={r.id} value={r.status} options={TICKET_STATUSES} queryKey={KEY} /> },
+            { key: "status", header: "Status", render: (r: any) => <Badge variant="outline" className="capitalize">{r.status}</Badge> },
           { key: "assigned_to", header: "Assignee", render: (r: any) => <span className="font-mono text-xs text-muted-foreground">{r.assigned_to ? r.assigned_to.slice(0, 8) : "Unassigned"}</span> },
           { key: "category", header: "Category", render: (r: any) => <span className="text-xs capitalize">{r.category ?? "—"}</span> },
           { key: "created_at", header: "Opened", render: (r: any) => new Date(r.created_at).toLocaleDateString() },
