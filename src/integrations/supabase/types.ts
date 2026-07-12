@@ -2471,6 +2471,50 @@ export type Database = {
       }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
       is_staff: { Args: { _user_id: string }; Returns: boolean }
+      support_ticket_assign: {
+        Args: { _assignee: string; _id: string }
+        Returns: {
+          assigned_to: string | null
+          category: string | null
+          created_at: string
+          id: string
+          priority: Database["public"]["Enums"]["ticket_priority"] | null
+          related_order_id: string | null
+          status: Database["public"]["Enums"]["ticket_status"]
+          subject: string
+          ticket_number: string
+          updated_at: string
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "support_tickets"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      support_ticket_transition: {
+        Args: { _id: string; _new_status: string; _reason?: string }
+        Returns: {
+          assigned_to: string | null
+          category: string | null
+          created_at: string
+          id: string
+          priority: Database["public"]["Enums"]["ticket_priority"] | null
+          related_order_id: string | null
+          status: Database["public"]["Enums"]["ticket_status"]
+          subject: string
+          ticket_number: string
+          updated_at: string
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "support_tickets"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
     }
     Enums: {
       account_status:

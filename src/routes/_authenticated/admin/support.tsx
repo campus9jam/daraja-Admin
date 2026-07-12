@@ -18,6 +18,13 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 const TICKET_STATUSES = ["open", "pending", "resolved", "closed", "escalated"] as const;
+const TRANSITIONS: Record<string, string[]> = {
+  open:      ["pending", "escalated", "resolved", "closed"],
+  pending:   ["open", "escalated", "resolved", "closed"],
+  escalated: ["pending", "resolved", "closed"],
+  resolved:  ["open", "closed"],
+  closed:    ["open"],
+};
 const PRIORITIES = ["low", "normal", "high", "urgent"] as const;
 const PRIORITY_COLOR: Record<string, string> = {
   low: "bg-muted text-muted-foreground",
@@ -64,7 +71,7 @@ function SupportPage() {
             ),
           },
           { key: "priority", header: "Priority", render: (r: any) => <Badge variant="outline" className={`capitalize ${PRIORITY_COLOR[r.priority ?? "normal"] ?? ""}`}>{r.priority ?? "normal"}</Badge> },
-          { key: "status", header: "Status", render: (r: any) => <StatusSelect table="support_tickets" id={r.id} value={r.status} options={TICKET_STATUSES} queryKey={KEY} /> },
+            { key: "status", header: "Status", render: (r: any) => <Badge variant="outline" className="capitalize">{r.status}</Badge> },
           { key: "assigned_to", header: "Assignee", render: (r: any) => <span className="font-mono text-xs text-muted-foreground">{r.assigned_to ? r.assigned_to.slice(0, 8) : "Unassigned"}</span> },
           { key: "category", header: "Category", render: (r: any) => <span className="text-xs capitalize">{r.category ?? "—"}</span> },
           { key: "created_at", header: "Opened", render: (r: any) => new Date(r.created_at).toLocaleDateString() },
@@ -125,10 +132,8 @@ function TicketDrawer({ id }: { id: string }) {
 
   const assign = useMutation({
     mutationFn: async (assignee: string | null) => {
-      const before = { assigned_to: ticket?.assigned_to };
-      const { error } = await supabase.from("support_tickets").update({ assigned_to: assignee }).eq("id", id);
+      const { error } = await supabase.rpc("support_ticket_assign", { _id: id, _assignee: assignee as any });
       if (error) throw error;
-      await writeAudit("ticket.assign", before, { assigned_to: assignee });
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["admin-ticket", id] });
@@ -137,6 +142,20 @@ function TicketDrawer({ id }: { id: string }) {
       toast.success("Assignment updated");
     },
     onError: (e: any) => toast.error(e.message),
+  });
+
+  const changeStatus = useMutation({
+    mutationFn: async (next: string) => {
+      const { error } = await supabase.rpc("support_ticket_transition", { _id: id, _new_status: next } as any);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin-ticket", id] });
+      qc.invalidateQueries({ queryKey: KEY });
+      qc.invalidateQueries({ queryKey: ["admin-audit"] });
+      toast.success("Status updated");
+    },
+    onError: (e: any) => toast.error(e.message ?? "Invalid transition"),
   });
 
   const setPriority = useMutation({
@@ -218,9 +237,18 @@ function TicketDrawer({ id }: { id: string }) {
         </div>
         <div className="col-span-2">
           <Label className="text-xs text-muted-foreground">Status</Label>
-          <div className="mt-1">
-            <StatusSelect table="support_tickets" id={ticket.id} value={ticket.status} options={TICKET_STATUSES} queryKey={KEY} width="w-full" />
-          </div>
+          <Select value={ticket.status} onValueChange={(v) => changeStatus.mutate(v)}>
+            <SelectTrigger className="h-9 capitalize"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value={ticket.status} className="capitalize">{ticket.status} (current)</SelectItem>
+              {(TRANSITIONS[ticket.status] ?? []).map((s) => (
+                <SelectItem key={s} value={s} className="capitalize">{s}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <p className="mt-1 text-[10px] text-muted-foreground">
+            Allowed: {(TRANSITIONS[ticket.status] ?? []).join(", ") || "no transitions"}
+          </p>
         </div>
       </div>
 
