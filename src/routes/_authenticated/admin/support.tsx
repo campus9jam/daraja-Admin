@@ -132,10 +132,8 @@ function TicketDrawer({ id }: { id: string }) {
 
   const assign = useMutation({
     mutationFn: async (assignee: string | null) => {
-      const before = { assigned_to: ticket?.assigned_to };
-      const { error } = await supabase.from("support_tickets").update({ assigned_to: assignee }).eq("id", id);
+      const { error } = await supabase.rpc("support_ticket_assign", { _id: id, _assignee: assignee });
       if (error) throw error;
-      await writeAudit("ticket.assign", before, { assigned_to: assignee });
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["admin-ticket", id] });
@@ -144,6 +142,20 @@ function TicketDrawer({ id }: { id: string }) {
       toast.success("Assignment updated");
     },
     onError: (e: any) => toast.error(e.message),
+  });
+
+  const changeStatus = useMutation({
+    mutationFn: async (next: string) => {
+      const { error } = await supabase.rpc("support_ticket_transition", { _id: id, _new_status: next, _reason: null });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin-ticket", id] });
+      qc.invalidateQueries({ queryKey: KEY });
+      qc.invalidateQueries({ queryKey: ["admin-audit"] });
+      toast.success("Status updated");
+    },
+    onError: (e: any) => toast.error(e.message ?? "Invalid transition"),
   });
 
   const setPriority = useMutation({
@@ -225,9 +237,18 @@ function TicketDrawer({ id }: { id: string }) {
         </div>
         <div className="col-span-2">
           <Label className="text-xs text-muted-foreground">Status</Label>
-          <div className="mt-1">
-            <StatusSelect table="support_tickets" id={ticket.id} value={ticket.status} options={TICKET_STATUSES} queryKey={KEY} width="w-full" />
-          </div>
+          <Select value={ticket.status} onValueChange={(v) => changeStatus.mutate(v)}>
+            <SelectTrigger className="h-9 capitalize"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value={ticket.status} className="capitalize">{ticket.status} (current)</SelectItem>
+              {(TRANSITIONS[ticket.status] ?? []).map((s) => (
+                <SelectItem key={s} value={s} className="capitalize">{s}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <p className="mt-1 text-[10px] text-muted-foreground">
+            Allowed: {(TRANSITIONS[ticket.status] ?? []).join(", ") || "no transitions"}
+          </p>
         </div>
       </div>
 
