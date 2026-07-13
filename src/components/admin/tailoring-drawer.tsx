@@ -70,7 +70,7 @@ export function TailoringDrawer({ orderId, onClose }: { orderId: string | null; 
 
   const update = useMutation({
     mutationFn: async (patch: Record<string, any>) => {
-      const { error } = await supabase.from("tailoring_orders").update(patch).eq("id", orderId!);
+      const { error } = await (supabase.from("tailoring_orders") as any).update(patch).eq("id", orderId!);
       if (error) throw error;
     },
     onSuccess: () => {
