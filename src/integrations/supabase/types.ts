@@ -2455,71 +2455,7 @@ export type Database = {
       }
     }
     Views: {
-      public_bids: {
-        Row: {
-          amount: number | null
-          auction_id: string | null
-          created_at: string | null
-          id: string | null
-          is_winning: boolean | null
-        }
-        Insert: {
-          amount?: number | null
-          auction_id?: string | null
-          created_at?: string | null
-          id?: string | null
-          is_winning?: boolean | null
-        }
-        Update: {
-          amount?: number | null
-          auction_id?: string | null
-          created_at?: string | null
-          id?: string | null
-          is_winning?: boolean | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "bids_auction_id_fkey"
-            columns: ["auction_id"]
-            isOneToOne: false
-            referencedRelation: "auctions"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      public_profiles: {
-        Row: {
-          avatar_url: string | null
-          bio: string | null
-          city: string | null
-          country: string | null
-          created_at: string | null
-          display_name: string | null
-          id: string | null
-          username: string | null
-        }
-        Insert: {
-          avatar_url?: string | null
-          bio?: string | null
-          city?: string | null
-          country?: string | null
-          created_at?: string | null
-          display_name?: string | null
-          id?: string | null
-          username?: string | null
-        }
-        Update: {
-          avatar_url?: string | null
-          bio?: string | null
-          city?: string | null
-          country?: string | null
-          created_at?: string | null
-          display_name?: string | null
-          id?: string | null
-          username?: string | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       dispatch_edge: {
