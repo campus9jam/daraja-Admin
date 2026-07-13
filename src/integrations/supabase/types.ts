@@ -2455,22 +2455,77 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      public_bids: {
+        Row: {
+          amount: number | null
+          auction_id: string | null
+          created_at: string | null
+          id: string | null
+          is_winning: boolean | null
+        }
+        Insert: {
+          amount?: number | null
+          auction_id?: string | null
+          created_at?: string | null
+          id?: string | null
+          is_winning?: boolean | null
+        }
+        Update: {
+          amount?: number | null
+          auction_id?: string | null
+          created_at?: string | null
+          id?: string | null
+          is_winning?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bids_auction_id_fkey"
+            columns: ["auction_id"]
+            isOneToOne: false
+            referencedRelation: "auctions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      public_profiles: {
+        Row: {
+          avatar_url: string | null
+          bio: string | null
+          city: string | null
+          country: string | null
+          created_at: string | null
+          display_name: string | null
+          id: string | null
+          username: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          bio?: string | null
+          city?: string | null
+          country?: string | null
+          created_at?: string | null
+          display_name?: string | null
+          id?: string | null
+          username?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          bio?: string | null
+          city?: string | null
+          country?: string | null
+          created_at?: string | null
+          display_name?: string | null
+          id?: string | null
+          username?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       dispatch_edge: {
         Args: { _fn: string; _payload: Json }
         Returns: undefined
       }
-      has_role: {
-        Args: {
-          _role: Database["public"]["Enums"]["app_role"]
-          _user_id: string
-        }
-        Returns: boolean
-      }
-      is_admin: { Args: { _user_id: string }; Returns: boolean }
-      is_staff: { Args: { _user_id: string }; Returns: boolean }
       support_ticket_assign: {
         Args: { _assignee: string; _id: string }
         Returns: {
