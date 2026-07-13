@@ -2462,15 +2462,6 @@ export type Database = {
         Args: { _fn: string; _payload: Json }
         Returns: undefined
       }
-      has_role: {
-        Args: {
-          _role: Database["public"]["Enums"]["app_role"]
-          _user_id: string
-        }
-        Returns: boolean
-      }
-      is_admin: { Args: { _user_id: string }; Returns: boolean }
-      is_staff: { Args: { _user_id: string }; Returns: boolean }
       support_ticket_assign: {
         Args: { _assignee: string; _id: string }
         Returns: {
