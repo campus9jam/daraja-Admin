@@ -22,6 +22,7 @@ import { Route as AuthenticatedAdminSettingsRouteImport } from './routes/_authen
 import { Route as AuthenticatedAdminRewardsRouteImport } from './routes/_authenticated/admin/rewards'
 import { Route as AuthenticatedAdminProductsRouteImport } from './routes/_authenticated/admin/products'
 import { Route as AuthenticatedAdminOrdersRouteImport } from './routes/_authenticated/admin/orders'
+import { Route as AuthenticatedAdminOnboardingRouteImport } from './routes/_authenticated/admin/onboarding'
 import { Route as AuthenticatedAdminModerationRouteImport } from './routes/_authenticated/admin/moderation'
 import { Route as AuthenticatedAdminLogisticsRouteImport } from './routes/_authenticated/admin/logistics'
 import { Route as AuthenticatedAdminFabricsRouteImport } from './routes/_authenticated/admin/fabrics'
@@ -103,6 +104,12 @@ const AuthenticatedAdminOrdersRoute =
     path: '/orders',
     getParentRoute: () => AuthenticatedAdminRouteRoute,
   } as any)
+const AuthenticatedAdminOnboardingRoute =
+  AuthenticatedAdminOnboardingRouteImport.update({
+    id: '/onboarding',
+    path: '/onboarding',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
 const AuthenticatedAdminModerationRoute =
   AuthenticatedAdminModerationRouteImport.update({
     id: '/moderation',
@@ -169,6 +176,7 @@ export interface FileRoutesByFullPath {
   '/admin/fabrics': typeof AuthenticatedAdminFabricsRoute
   '/admin/logistics': typeof AuthenticatedAdminLogisticsRoute
   '/admin/moderation': typeof AuthenticatedAdminModerationRoute
+  '/admin/onboarding': typeof AuthenticatedAdminOnboardingRoute
   '/admin/orders': typeof AuthenticatedAdminOrdersRoute
   '/admin/products': typeof AuthenticatedAdminProductsRoute
   '/admin/rewards': typeof AuthenticatedAdminRewardsRoute
@@ -191,6 +199,7 @@ export interface FileRoutesByTo {
   '/admin/fabrics': typeof AuthenticatedAdminFabricsRoute
   '/admin/logistics': typeof AuthenticatedAdminLogisticsRoute
   '/admin/moderation': typeof AuthenticatedAdminModerationRoute
+  '/admin/onboarding': typeof AuthenticatedAdminOnboardingRoute
   '/admin/orders': typeof AuthenticatedAdminOrdersRoute
   '/admin/products': typeof AuthenticatedAdminProductsRoute
   '/admin/rewards': typeof AuthenticatedAdminRewardsRoute
@@ -216,6 +225,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/fabrics': typeof AuthenticatedAdminFabricsRoute
   '/_authenticated/admin/logistics': typeof AuthenticatedAdminLogisticsRoute
   '/_authenticated/admin/moderation': typeof AuthenticatedAdminModerationRoute
+  '/_authenticated/admin/onboarding': typeof AuthenticatedAdminOnboardingRoute
   '/_authenticated/admin/orders': typeof AuthenticatedAdminOrdersRoute
   '/_authenticated/admin/products': typeof AuthenticatedAdminProductsRoute
   '/_authenticated/admin/rewards': typeof AuthenticatedAdminRewardsRoute
@@ -241,6 +251,7 @@ export interface FileRouteTypes {
     | '/admin/fabrics'
     | '/admin/logistics'
     | '/admin/moderation'
+    | '/admin/onboarding'
     | '/admin/orders'
     | '/admin/products'
     | '/admin/rewards'
@@ -263,6 +274,7 @@ export interface FileRouteTypes {
     | '/admin/fabrics'
     | '/admin/logistics'
     | '/admin/moderation'
+    | '/admin/onboarding'
     | '/admin/orders'
     | '/admin/products'
     | '/admin/rewards'
@@ -287,6 +299,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/fabrics'
     | '/_authenticated/admin/logistics'
     | '/_authenticated/admin/moderation'
+    | '/_authenticated/admin/onboarding'
     | '/_authenticated/admin/orders'
     | '/_authenticated/admin/products'
     | '/_authenticated/admin/rewards'
@@ -397,6 +410,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminOrdersRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
+    '/_authenticated/admin/onboarding': {
+      id: '/_authenticated/admin/onboarding'
+      path: '/onboarding'
+      fullPath: '/admin/onboarding'
+      preLoaderRoute: typeof AuthenticatedAdminOnboardingRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
     '/_authenticated/admin/moderation': {
       id: '/_authenticated/admin/moderation'
       path: '/moderation'
@@ -473,6 +493,7 @@ interface AuthenticatedAdminRouteRouteChildren {
   AuthenticatedAdminFabricsRoute: typeof AuthenticatedAdminFabricsRoute
   AuthenticatedAdminLogisticsRoute: typeof AuthenticatedAdminLogisticsRoute
   AuthenticatedAdminModerationRoute: typeof AuthenticatedAdminModerationRoute
+  AuthenticatedAdminOnboardingRoute: typeof AuthenticatedAdminOnboardingRoute
   AuthenticatedAdminOrdersRoute: typeof AuthenticatedAdminOrdersRoute
   AuthenticatedAdminProductsRoute: typeof AuthenticatedAdminProductsRoute
   AuthenticatedAdminRewardsRoute: typeof AuthenticatedAdminRewardsRoute
@@ -495,6 +516,7 @@ const AuthenticatedAdminRouteRouteChildren: AuthenticatedAdminRouteRouteChildren
     AuthenticatedAdminFabricsRoute: AuthenticatedAdminFabricsRoute,
     AuthenticatedAdminLogisticsRoute: AuthenticatedAdminLogisticsRoute,
     AuthenticatedAdminModerationRoute: AuthenticatedAdminModerationRoute,
+    AuthenticatedAdminOnboardingRoute: AuthenticatedAdminOnboardingRoute,
     AuthenticatedAdminOrdersRoute: AuthenticatedAdminOrdersRoute,
     AuthenticatedAdminProductsRoute: AuthenticatedAdminProductsRoute,
     AuthenticatedAdminRewardsRoute: AuthenticatedAdminRewardsRoute,
@@ -530,13 +552,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

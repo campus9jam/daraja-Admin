@@ -1913,6 +1913,60 @@ export type Database = {
           },
         ]
       }
+      staff_applications: {
+        Row: {
+          bio: string | null
+          business_name: string | null
+          coverage_areas: string[] | null
+          created_at: string
+          extra: Json | null
+          id: string
+          id_document_url: string | null
+          portfolio_urls: string[] | null
+          requested_role: string
+          reviewed_at: string | null
+          reviewer_id: string | null
+          reviewer_notes: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          bio?: string | null
+          business_name?: string | null
+          coverage_areas?: string[] | null
+          created_at?: string
+          extra?: Json | null
+          id?: string
+          id_document_url?: string | null
+          portfolio_urls?: string[] | null
+          requested_role: string
+          reviewed_at?: string | null
+          reviewer_id?: string | null
+          reviewer_notes?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          bio?: string | null
+          business_name?: string | null
+          coverage_areas?: string[] | null
+          created_at?: string
+          extra?: Json | null
+          id?: string
+          id_document_url?: string | null
+          portfolio_urls?: string[] | null
+          requested_role?: string
+          reviewed_at?: string | null
+          reviewer_id?: string | null
+          reviewer_notes?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       support_messages: {
         Row: {
           attachments: string[] | null
@@ -2458,9 +2512,139 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      approve_staff_application: {
+        Args: { _id: string; _notes?: string }
+        Returns: {
+          bio: string | null
+          business_name: string | null
+          coverage_areas: string[] | null
+          created_at: string
+          extra: Json | null
+          id: string
+          id_document_url: string | null
+          portfolio_urls: string[] | null
+          requested_role: string
+          reviewed_at: string | null
+          reviewer_id: string | null
+          reviewer_notes: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "staff_applications"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      auto_close_expired_auctions: { Args: never; Returns: number }
+      close_auction: {
+        Args: { _auction_id: string }
+        Returns: {
+          anti_snipe_seconds: number | null
+          bid_increment: number
+          created_at: string
+          current_bid: number | null
+          current_bidder_id: string | null
+          ends_at: string
+          id: string
+          product_id: string
+          reserve_price: number | null
+          starting_price: number
+          starts_at: string
+          status: Database["public"]["Enums"]["auction_status"]
+          total_bids: number
+          updated_at: string
+          vendor_id: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "auctions"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       dispatch_edge: {
         Args: { _fn: string; _payload: Json }
         Returns: undefined
+      }
+      place_bid: {
+        Args: { _amount: number; _auction_id: string }
+        Returns: {
+          amount: number
+          auction_id: string
+          bidder_id: string
+          created_at: string
+          id: string
+          ip_address: unknown
+          is_winning: boolean | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "bids"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      reject_staff_application: {
+        Args: { _id: string; _notes?: string }
+        Returns: {
+          bio: string | null
+          business_name: string | null
+          coverage_areas: string[] | null
+          created_at: string
+          extra: Json | null
+          id: string
+          id_document_url: string | null
+          portfolio_urls: string[] | null
+          requested_role: string
+          reviewed_at: string | null
+          reviewer_id: string | null
+          reviewer_notes: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "staff_applications"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      submit_staff_application: {
+        Args: {
+          _bio: string
+          _business_name: string
+          _coverage_areas: string[]
+          _id_document_url: string
+          _portfolio_urls: string[]
+          _role: string
+        }
+        Returns: {
+          bio: string | null
+          business_name: string | null
+          coverage_areas: string[] | null
+          created_at: string
+          extra: Json | null
+          id: string
+          id_document_url: string | null
+          portfolio_urls: string[] | null
+          requested_role: string
+          reviewed_at: string | null
+          reviewer_id: string | null
+          reviewer_notes: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "staff_applications"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       support_ticket_assign: {
         Args: { _assignee: string; _id: string }
