@@ -4,6 +4,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { PageHeader } from "@/components/admin/page-header";
 import { DataTable } from "@/components/admin/data-table";
 import { StatusSelect } from "@/components/admin/status-select";
+import { AuctionDrawer } from "@/components/admin/auction-drawer";
+import { Button } from "@/components/ui/button";
+import { useState } from "react";
 
 const AUCTION_STATUSES = ["scheduled","live","ended","cancelled","sold","unsold"] as const;
 const KEY = ["admin-auctions"];
@@ -11,6 +14,7 @@ const KEY = ["admin-auctions"];
 export const Route = createFileRoute("/_authenticated/admin/auctions")({ component: AuctionsPage });
 
 function AuctionsPage() {
+  const [openId, setOpenId] = useState<string | null>(null);
   const { data, isLoading } = useQuery({
     queryKey: KEY,
     queryFn: async () => {
@@ -36,8 +40,10 @@ function AuctionsPage() {
           { key: "current_bid", header: "Current", render: (r: any) => `KES ${Number(r.current_bid ?? 0).toLocaleString()}` },
           { key: "total_bids", header: "Bids", render: (r: any) => r.total_bids ?? 0 },
           { key: "ends_at", header: "Ends", render: (r: any) => r.ends_at ? new Date(r.ends_at).toLocaleString() : "—" },
+          { key: "actions", header: "", render: (r: any) => <Button size="sm" variant="ghost" onClick={() => setOpenId(r.id)}>Open</Button> },
         ]}
       />
+      <AuctionDrawer id={openId} onClose={() => setOpenId(null)} />
     </div>
   );
 }
