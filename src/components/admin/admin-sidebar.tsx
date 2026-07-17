@@ -2,7 +2,7 @@ import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import {
   LayoutDashboard, Users, Package, ShoppingCart, Scissors, Truck,
   Gavel, Bot, Coins, ShieldAlert, BarChart3, LifeBuoy, Store, Settings, LogOut, FileClock,
-  FolderTree, Megaphone, Layers,
+  FolderTree, Megaphone, Layers, UserPlus,
 } from "lucide-react";
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
@@ -44,6 +44,7 @@ const groups = [
     label: "Community",
     items: [
       { title: "Users", url: "/admin/users", icon: Users },
+      { title: "Onboarding", url: "/admin/onboarding", icon: UserPlus },
       { title: "Rewards", url: "/admin/rewards", icon: Coins },
       { title: "Moderation", url: "/admin/moderation", icon: ShieldAlert },
       { title: "Support", url: "/admin/support", icon: LifeBuoy },
