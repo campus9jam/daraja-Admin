@@ -30,12 +30,17 @@ function OnboardingPage() {
     queryFn: async () => {
       let query = supabase
         .from("staff_applications")
-        .select("id, user_id, requested_role, status, business_name, bio, portfolio_urls, coverage_areas, id_document_url, reviewer_notes, reviewed_at, created_at, profile:profiles(display_name, email, phone)")
+        .select("id, user_id, requested_role, status, business_name, bio, portfolio_urls, coverage_areas, id_document_url, reviewer_notes, reviewed_at, created_at")
         .order("created_at", { ascending: false }).limit(200);
       if (status !== "all") query = query.eq("status", status);
       const { data, error } = await query;
       if (error) throw error;
-      return data;
+      const rows = data ?? [];
+      const ids = Array.from(new Set(rows.map((r: any) => r.user_id)));
+      if (ids.length === 0) return rows;
+      const { data: profs } = await supabase.from("profiles").select("id, display_name, email, phone").in("id", ids);
+      const map = new Map((profs ?? []).map((p: any) => [p.id, p]));
+      return rows.map((r: any) => ({ ...r, profile: map.get(r.user_id) ?? null }));
     },
   });
 
@@ -53,7 +58,7 @@ function OnboardingPage() {
 
   const approve = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.rpc("approve_staff_application", { _id: openId!, _notes: notes || null });
+      const { error } = await supabase.rpc("approve_staff_application", { _id: openId!, _notes: notes || undefined });
       if (error) throw error;
     },
     onSuccess: () => { toast.success("Application approved"); qc.invalidateQueries({ queryKey: ["admin-onboarding"] }); setOpenId(null); setNotes(""); },
@@ -61,7 +66,7 @@ function OnboardingPage() {
   });
   const reject = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.rpc("reject_staff_application", { _id: openId!, _notes: notes || null });
+      const { error } = await supabase.rpc("reject_staff_application", { _id: openId!, _notes: notes || undefined });
       if (error) throw error;
     },
     onSuccess: () => { toast.success("Application rejected"); qc.invalidateQueries({ queryKey: ["admin-onboarding"] }); setOpenId(null); setNotes(""); },
