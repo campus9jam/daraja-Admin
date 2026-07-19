@@ -32,7 +32,7 @@ export function UserDrawer({ id, onClose }: { id: string | null; onClose: () => 
         supabase.from("user_roles").select("role").eq("user_id", id!),
         supabase.from("wallets").select("*").eq("user_id", id!).maybeSingle(),
         supabase.from("wallet_transactions").select("*").eq("user_id", id!).order("created_at",{ascending:false}).limit(30),
-        supabase.from("orders").select("id, order_number, status, grand_total, currency, created_at").eq("user_id", id!).order("created_at",{ascending:false}).limit(20),
+        supabase.from("orders").select("id, order_number, status, grand_total, currency, created_at").eq("customer_id", id!).order("created_at",{ascending:false}).limit(20),
         supabase.from("user_activity_logs").select("*").eq("user_id", id!).order("created_at",{ascending:false}).limit(30),
         supabase.from("staff_applications").select("id, requested_role, status, created_at").eq("user_id", id!).order("created_at",{ascending:false}),
       ]);
@@ -71,7 +71,7 @@ export function UserDrawer({ id, onClose }: { id: string | null; onClose: () => 
       if (!amt && !tok) throw new Error("Enter a KES amount or token amount.");
       const { error } = await supabase.rpc("admin_adjust_wallet", {
         _user_id: id!, _amount: amt, _token_amount: tok,
-        _description: adjNote.trim() || null, _tx_type: "adjustment",
+        _description: adjNote.trim() || undefined, _tx_type: "adjustment",
       });
       if (error) throw error;
     },
@@ -85,7 +85,7 @@ export function UserDrawer({ id, onClose }: { id: string | null; onClose: () => 
 
   const setStatus = useMutation({
     mutationFn: async (status: string) => {
-      const { error } = await supabase.rpc("admin_set_account_status", { _user_id: id!, _status: status, _reason: null });
+      const { error } = await supabase.rpc("admin_set_account_status", { _user_id: id!, _status: status });
       if (error) throw error;
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["admin-user", id] }); toast.success("Status updated"); },
