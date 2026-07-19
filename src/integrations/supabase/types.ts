@@ -2512,6 +2512,64 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_adjust_wallet: {
+        Args: {
+          _amount: number
+          _description?: string
+          _token_amount?: number
+          _tx_type?: string
+          _user_id: string
+        }
+        Returns: {
+          amount: number
+          balance_after: number | null
+          created_at: string
+          description: string | null
+          id: string
+          metadata: Json | null
+          reference: string | null
+          related_order_id: string | null
+          token_amount: number
+          tx_type: Database["public"]["Enums"]["wallet_tx_type"]
+          user_id: string
+          wallet_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "wallet_transactions"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      admin_set_account_status: {
+        Args: { _reason?: string; _status: string; _user_id: string }
+        Returns: {
+          account_status: Database["public"]["Enums"]["account_status"]
+          avatar_url: string | null
+          bio: string | null
+          city: string | null
+          country: string | null
+          created_at: string
+          deleted_at: string | null
+          display_name: string | null
+          email: string | null
+          email_verified: boolean | null
+          id: string
+          language: string | null
+          lee_tokens: number
+          metadata: Json | null
+          phone: string | null
+          updated_at: string
+          username: string | null
+          wallet_balance: number
+        }
+        SetofOptions: {
+          from: "*"
+          to: "profiles"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       approve_staff_application: {
         Args: { _id: string; _notes?: string }
         Returns: {
