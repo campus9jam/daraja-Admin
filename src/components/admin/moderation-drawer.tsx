@@ -49,7 +49,7 @@ export function ModerationDrawer({ id, onClose }: { id: string | null; onClose: 
     mutationFn: async (patch: Record<string, any>) => {
       if (patch.status && patch.status !== "reviewing" && !resolution.trim())
         throw new Error("Add resolution notes before closing a report");
-      const { error } = await supabase.from("moderation_reports").update(patch).eq("id", id!);
+      const { error } = await supabase.from("moderation_reports").update(patch as any).eq("id", id!);
       if (error) throw error;
       await log("moderation.update", patch);
     },
