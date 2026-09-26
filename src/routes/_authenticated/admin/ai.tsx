@@ -8,6 +8,13 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { toast } from "sonner";
+import { useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { runAiWorkflow } from "@/lib/ai.functions";
 
 export const Route = createFileRoute("/_authenticated/admin/ai")({ component: AIPage });
 
@@ -18,10 +25,12 @@ function AIPage() {
       <Tabs defaultValue="workflows">
         <TabsList>
           <TabsTrigger value="workflows">Workflows</TabsTrigger>
+          <TabsTrigger value="logs">Run logs</TabsTrigger>
           <TabsTrigger value="conversations">Conversations</TabsTrigger>
           <TabsTrigger value="feedback">Feedback</TabsTrigger>
         </TabsList>
         <TabsContent value="workflows" className="mt-4"><WorkflowsTab /></TabsContent>
+        <TabsContent value="logs" className="mt-4"><LogsTab /></TabsContent>
         <TabsContent value="conversations" className="mt-4"><ConversationsTab /></TabsContent>
         <TabsContent value="feedback" className="mt-4"><FeedbackTab /></TabsContent>
       </Tabs>
@@ -32,6 +41,8 @@ function AIPage() {
 function WorkflowsTab() {
   const { data: me } = useCurrentUser();
   const qc = useQueryClient();
+  const [runFor, setRunFor] = useState<any>(null);
+  const [creating, setCreating] = useState(false);
   const { data, isLoading } = useQuery({
     queryKey: ["admin-ai-workflows"],
     queryFn: async () => {
@@ -51,19 +62,111 @@ function WorkflowsTab() {
     onError: (e: any) => toast.error(e.message),
   });
   return (
+    <div>
+      {me?.isAdmin && <div className="mb-3"><Button size="sm" onClick={() => setCreating(true)}>New workflow</Button></div>}
+      <DataTable
+        loading={isLoading}
+        rows={data ?? []}
+        columns={[
+          { key: "name", header: "Workflow", render: (r: any) => (
+            <div><div className="font-medium">{r.name}</div>{r.description && <div className="text-xs text-muted-foreground line-clamp-1 max-w-[300px]">{r.description}</div>}</div>
+          ) },
+          { key: "trigger_type", header: "Trigger", render: (r: any) => <Badge variant="outline" className="font-mono text-[10px]">{r.trigger_type ?? "manual"}</Badge> },
+          { key: "total_runs", header: "Runs", render: (r: any) => Number(r.total_runs ?? 0).toLocaleString() },
+          { key: "last_run_at", header: "Last run", render: (r: any) => r.last_run_at ? new Date(r.last_run_at).toLocaleString() : "—" },
+          { key: "is_active", header: "Active", render: (r: any) => (
+            <Switch checked={!!r.is_active} disabled={!me?.isStaff || toggle.isPending} onCheckedChange={(v) => toggle.mutate({ id: r.id, is_active: v })} />
+          ) },
+          { key: "run", header: "", render: (r: any) => me?.isStaff && (
+            <Button size="sm" variant="ghost" disabled={!r.is_active} onClick={() => setRunFor(r)}>Run</Button>
+          ) },
+        ]}
+      />
+      <RunDialog wf={runFor} onClose={() => setRunFor(null)} />
+      <CreateDialog open={creating} onClose={() => setCreating(false)} />
+    </div>
+  );
+}
+
+function RunDialog({ wf, onClose }: { wf: any; onClose: () => void }) {
+  const qc = useQueryClient();
+  const run = useServerFn(runAiWorkflow);
+  const [input, setInput] = useState("");
+  const [out, setOut] = useState<string | null>(null);
+  const mut = useMutation({
+    mutationFn: () => run({ data: { workflowId: wf.id, input: input.trim() } }),
+    onSuccess: (r) => {
+      setOut(r.output);
+      qc.invalidateQueries({ queryKey: ["admin-ai-workflows"] });
+      qc.invalidateQueries({ queryKey: ["admin-ai-logs"] });
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+  return (
+    <Dialog open={!!wf} onOpenChange={(o) => { if (!o) { onClose(); setOut(null); setInput(""); } }}>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader><DialogTitle>Run: {wf?.name}</DialogTitle></DialogHeader>
+        <Textarea rows={5} maxLength={8000} placeholder="Input for this run (e.g. a product description to enrich, a ticket to triage)…"
+          value={input} onChange={(e) => setInput(e.target.value)} />
+        <Button disabled={!input.trim() || mut.isPending} onClick={() => mut.mutate()}>
+          {mut.isPending ? "Running…" : "Run workflow"}
+        </Button>
+        {out && <div className="max-h-80 overflow-auto rounded-md border border-border/60 p-3 text-sm whitespace-pre-wrap">{out}</div>}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function CreateDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const qc = useQueryClient();
+  const [f, setF] = useState({ name: "", description: "", trigger_type: "manual", prompt: "" });
+  const mut = useMutation({
+    mutationFn: async () => {
+      if (!f.name.trim() || f.name.length > 120) throw new Error("Name is required (max 120 chars)");
+      const { error } = await supabase.from("ai_workflows").insert({
+        name: f.name.trim(), description: f.description.trim() || null, trigger_type: f.trigger_type,
+        is_active: true, config: f.prompt.trim() ? { prompt: f.prompt.trim() } : {},
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["admin-ai-workflows"] }); toast.success("Workflow created"); onClose(); setF({ name: "", description: "", trigger_type: "manual", prompt: "" }); },
+    onError: (e: any) => toast.error(e.message),
+  });
+  return (
+    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent>
+        <DialogHeader><DialogTitle>New AI workflow</DialogTitle></DialogHeader>
+        <Input placeholder="Name" value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} />
+        <Input placeholder="Description" value={f.description} onChange={(e) => setF({ ...f, description: e.target.value })} />
+        <Input placeholder="Trigger (manual, order.created, …)" value={f.trigger_type} onChange={(e) => setF({ ...f, trigger_type: e.target.value })} />
+        <Textarea rows={4} placeholder="Instructions for the AI (optional)" value={f.prompt} onChange={(e) => setF({ ...f, prompt: e.target.value })} />
+        <Button disabled={mut.isPending} onClick={() => mut.mutate()}>Create</Button>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function LogsTab() {
+  const { data, isLoading } = useQuery({
+    queryKey: ["admin-ai-logs"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("ai_logs")
+        .select("id, level, event, payload, duration_ms, created_at, ai_workflows(name)")
+        .order("created_at", { ascending: false }).limit(100);
+      if (error) throw error;
+      return data;
+    },
+  });
+  return (
     <DataTable
       loading={isLoading}
       rows={data ?? []}
       columns={[
-        { key: "name", header: "Workflow", render: (r: any) => (
-          <div><div className="font-medium">{r.name}</div>{r.description && <div className="text-xs text-muted-foreground line-clamp-1 max-w-[300px]">{r.description}</div>}</div>
-        ) },
-        { key: "trigger_type", header: "Trigger", render: (r: any) => <Badge variant="outline" className="font-mono text-[10px]">{r.trigger_type ?? "manual"}</Badge> },
-        { key: "total_runs", header: "Runs", render: (r: any) => Number(r.total_runs ?? 0).toLocaleString() },
-        { key: "last_run_at", header: "Last run", render: (r: any) => r.last_run_at ? new Date(r.last_run_at).toLocaleString() : "—" },
-        { key: "is_active", header: "Active", render: (r: any) => (
-          <Switch checked={!!r.is_active} disabled={!me?.isStaff || toggle.isPending} onCheckedChange={(v) => toggle.mutate({ id: r.id, is_active: v })} />
-        ) },
+        { key: "created_at", header: "When", render: (r: any) => <span className="text-xs text-muted-foreground">{new Date(r.created_at).toLocaleString()}</span> },
+        { key: "wf", header: "Workflow", render: (r: any) => r.ai_workflows?.name ?? "—" },
+        { key: "level", header: "Level", render: (r: any) => <Badge variant={r.level === "error" ? "destructive" : "outline"}>{r.level}</Badge> },
+        { key: "out", header: "Output", render: (r: any) => <span className="text-xs line-clamp-2 max-w-[420px]">{r.payload?.output ?? "—"}</span> },
+        { key: "duration_ms", header: "ms", render: (r: any) => r.duration_ms ?? "—" },
       ]}
     />
   );
