@@ -32,6 +32,7 @@ import { Route as AuthenticatedAdminAuctionsRouteImport } from './routes/_authen
 import { Route as AuthenticatedAdminAnnouncementsRouteImport } from './routes/_authenticated/admin/announcements'
 import { Route as AuthenticatedAdminAnalyticsRouteImport } from './routes/_authenticated/admin/analytics'
 import { Route as AuthenticatedAdminAiRouteImport } from './routes/_authenticated/admin/ai'
+import { Route as ApiPublicWorkflowsTickRouteImport } from './routes/api/public/workflows/tick'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -162,6 +163,11 @@ const AuthenticatedAdminAiRoute = AuthenticatedAdminAiRouteImport.update({
   path: '/ai',
   getParentRoute: () => AuthenticatedAdminRouteRoute,
 } as any)
+const ApiPublicWorkflowsTickRoute = ApiPublicWorkflowsTickRouteImport.update({
+  id: '/api/public/workflows/tick',
+  path: '/api/public/workflows/tick',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -186,6 +192,7 @@ export interface FileRoutesByFullPath {
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/admin/vendors': typeof AuthenticatedAdminVendorsRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
+  '/api/public/workflows/tick': typeof ApiPublicWorkflowsTickRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -209,6 +216,7 @@ export interface FileRoutesByTo {
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/admin/vendors': typeof AuthenticatedAdminVendorsRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
+  '/api/public/workflows/tick': typeof ApiPublicWorkflowsTickRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -235,6 +243,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/users': typeof AuthenticatedAdminUsersRoute
   '/_authenticated/admin/vendors': typeof AuthenticatedAdminVendorsRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
+  '/api/public/workflows/tick': typeof ApiPublicWorkflowsTickRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -261,6 +270,7 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/admin/vendors'
     | '/admin/'
+    | '/api/public/workflows/tick'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -284,6 +294,7 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/admin/vendors'
     | '/admin'
+    | '/api/public/workflows/tick'
   id:
     | '__root__'
     | '/'
@@ -309,12 +320,14 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/users'
     | '/_authenticated/admin/vendors'
     | '/_authenticated/admin/'
+    | '/api/public/workflows/tick'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  ApiPublicWorkflowsTickRoute: typeof ApiPublicWorkflowsTickRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -480,6 +493,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminAiRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
+    '/api/public/workflows/tick': {
+      id: '/api/public/workflows/tick'
+      path: '/api/public/workflows/tick'
+      fullPath: '/api/public/workflows/tick'
+      preLoaderRoute: typeof ApiPublicWorkflowsTickRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -548,6 +568,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  ApiPublicWorkflowsTickRoute: ApiPublicWorkflowsTickRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
