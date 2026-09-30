@@ -15,22 +15,26 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { runAiWorkflow } from "@/lib/ai.functions";
+import { RunsTab, DiagnoseTab } from "@/components/admin/workflow-runs";
+import { WorkflowTriggersDialog } from "@/components/admin/workflow-triggers-dialog";
 
 export const Route = createFileRoute("/_authenticated/admin/ai")({ component: AIPage });
 
 function AIPage() {
   return (
     <div>
-      <PageHeader title="AI Workflows" description="Automation pipelines, agent conversations, and feedback loops." />
+      <PageHeader title="AI Workflows" description="Automation pipelines, schedules, run history, and failure diagnosis." />
       <Tabs defaultValue="workflows">
         <TabsList>
           <TabsTrigger value="workflows">Workflows</TabsTrigger>
-          <TabsTrigger value="logs">Run logs</TabsTrigger>
+          <TabsTrigger value="runs">Run history</TabsTrigger>
+          <TabsTrigger value="diagnose">Diagnose</TabsTrigger>
           <TabsTrigger value="conversations">Conversations</TabsTrigger>
           <TabsTrigger value="feedback">Feedback</TabsTrigger>
         </TabsList>
         <TabsContent value="workflows" className="mt-4"><WorkflowsTab /></TabsContent>
-        <TabsContent value="logs" className="mt-4"><LogsTab /></TabsContent>
+        <TabsContent value="runs" className="mt-4"><RunsTab /></TabsContent>
+        <TabsContent value="diagnose" className="mt-4"><DiagnoseTab /></TabsContent>
         <TabsContent value="conversations" className="mt-4"><ConversationsTab /></TabsContent>
         <TabsContent value="feedback" className="mt-4"><FeedbackTab /></TabsContent>
       </Tabs>
@@ -42,12 +46,13 @@ function WorkflowsTab() {
   const { data: me } = useCurrentUser();
   const qc = useQueryClient();
   const [runFor, setRunFor] = useState<any>(null);
+  const [trigFor, setTrigFor] = useState<any>(null);
   const [creating, setCreating] = useState(false);
   const { data, isLoading } = useQuery({
     queryKey: ["admin-ai-workflows"],
     queryFn: async () => {
       const { data, error } = await supabase.from("ai_workflows")
-        .select("id, name, description, trigger_type, is_active, total_runs, last_run_at, created_at")
+        .select("id, name, description, trigger_type, is_active, total_runs, last_run_at, created_at, schedule_interval_minutes, schedule_enabled, next_run_at, event_trigger, event_enabled")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data;
@@ -71,18 +76,28 @@ function WorkflowsTab() {
           { key: "name", header: "Workflow", render: (r: any) => (
             <div><div className="font-medium">{r.name}</div>{r.description && <div className="text-xs text-muted-foreground line-clamp-1 max-w-[300px]">{r.description}</div>}</div>
           ) },
-          { key: "trigger_type", header: "Trigger", render: (r: any) => <Badge variant="outline" className="font-mono text-[10px]">{r.trigger_type ?? "manual"}</Badge> },
+          { key: "triggers", header: "Triggers", render: (r: any) => (
+            <div className="flex flex-wrap gap-1">
+              <Badge variant="outline" className="text-[10px]">manual</Badge>
+              {r.schedule_enabled && <Badge className="text-[10px]">every {r.schedule_interval_minutes}m</Badge>}
+              {r.event_enabled && <Badge variant="secondary" className="text-[10px] font-mono">{r.event_trigger}</Badge>}
+            </div>
+          ) },
           { key: "total_runs", header: "Runs", render: (r: any) => Number(r.total_runs ?? 0).toLocaleString() },
           { key: "last_run_at", header: "Last run", render: (r: any) => r.last_run_at ? new Date(r.last_run_at).toLocaleString() : "—" },
           { key: "is_active", header: "Active", render: (r: any) => (
             <Switch checked={!!r.is_active} disabled={!me?.isStaff || toggle.isPending} onCheckedChange={(v) => toggle.mutate({ id: r.id, is_active: v })} />
           ) },
-          { key: "run", header: "", render: (r: any) => me?.isStaff && (
-            <Button size="sm" variant="ghost" disabled={!r.is_active} onClick={() => setRunFor(r)}>Run</Button>
+          { key: "run", header: "", render: (r: any) => (
+            <div className="flex gap-1 justify-end">
+              {me?.isAdmin && <Button size="sm" variant="ghost" onClick={() => setTrigFor(r)}>Triggers</Button>}
+              {me?.isStaff && <Button size="sm" variant="ghost" disabled={!r.is_active} onClick={() => setRunFor(r)}>Run</Button>}
+            </div>
           ) },
         ]}
       />
       <RunDialog wf={runFor} onClose={() => setRunFor(null)} />
+      <WorkflowTriggersDialog wf={trigFor} onClose={() => setTrigFor(null)} />
       <CreateDialog open={creating} onClose={() => setCreating(false)} />
     </div>
   );
@@ -94,13 +109,13 @@ function RunDialog({ wf, onClose }: { wf: any; onClose: () => void }) {
   const [input, setInput] = useState("");
   const [out, setOut] = useState<string | null>(null);
   const mut = useMutation({
-    mutationFn: () => run({ data: { workflowId: wf.id, input: input.trim() } }),
+    mutationFn: () => run({ data: { workflowId: wf.id, input: input.trim(), idempotencyKey: crypto.randomUUID() } }),
     onSuccess: (r) => {
       setOut(r.output);
       qc.invalidateQueries({ queryKey: ["admin-ai-workflows"] });
-      qc.invalidateQueries({ queryKey: ["admin-ai-logs"] });
+      qc.invalidateQueries({ queryKey: ["admin-ai-runs"] });
     },
-    onError: (e: any) => toast.error(e.message),
+    onError: (e: any) => { toast.error(e.message); qc.invalidateQueries({ queryKey: ["admin-ai-runs"] }); },
   });
   return (
     <Dialog open={!!wf} onOpenChange={(o) => { if (!o) { onClose(); setOut(null); setInput(""); } }}>
@@ -138,37 +153,10 @@ function CreateDialog({ open, onClose }: { open: boolean; onClose: () => void })
         <DialogHeader><DialogTitle>New AI workflow</DialogTitle></DialogHeader>
         <Input placeholder="Name" value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} />
         <Input placeholder="Description" value={f.description} onChange={(e) => setF({ ...f, description: e.target.value })} />
-        <Input placeholder="Trigger (manual, order.created, …)" value={f.trigger_type} onChange={(e) => setF({ ...f, trigger_type: e.target.value })} />
         <Textarea rows={4} placeholder="Instructions for the AI (optional)" value={f.prompt} onChange={(e) => setF({ ...f, prompt: e.target.value })} />
         <Button disabled={mut.isPending} onClick={() => mut.mutate()}>Create</Button>
       </DialogContent>
     </Dialog>
-  );
-}
-
-function LogsTab() {
-  const { data, isLoading } = useQuery({
-    queryKey: ["admin-ai-logs"],
-    queryFn: async () => {
-      const { data, error } = await supabase.from("ai_logs")
-        .select("id, level, event, payload, duration_ms, created_at, ai_workflows(name)")
-        .order("created_at", { ascending: false }).limit(100);
-      if (error) throw error;
-      return data;
-    },
-  });
-  return (
-    <DataTable
-      loading={isLoading}
-      rows={data ?? []}
-      columns={[
-        { key: "created_at", header: "When", render: (r: any) => <span className="text-xs text-muted-foreground">{new Date(r.created_at).toLocaleString()}</span> },
-        { key: "wf", header: "Workflow", render: (r: any) => r.ai_workflows?.name ?? "—" },
-        { key: "level", header: "Level", render: (r: any) => <Badge variant={r.level === "error" ? "destructive" : "outline"}>{r.level}</Badge> },
-        { key: "out", header: "Output", render: (r: any) => <span className="text-xs line-clamp-2 max-w-[420px]">{r.payload?.output ?? "—"}</span> },
-        { key: "duration_ms", header: "ms", render: (r: any) => r.duration_ms ?? "—" },
-      ]}
-    />
   );
 }
 
