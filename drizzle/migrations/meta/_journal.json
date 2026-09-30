@@ -8,6 +8,13 @@
       "when": 1790770036684,
       "tag": "0000_ai_workflow_runs_schedules_events",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1790770117927,
+      "tag": "0001_wake_workflow_tick_on_event",
+      "breakpoints": true
     }
   ]
 }
