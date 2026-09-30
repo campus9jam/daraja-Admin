@@ -230,15 +230,122 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_scheduler_state: {
+        Row: {
+          id: number
+          last_tick_at: string | null
+          locked_until: string | null
+          paused_reason: string | null
+          token: string
+        }
+        Insert: {
+          id?: number
+          last_tick_at?: string | null
+          locked_until?: string | null
+          paused_reason?: string | null
+          token?: string
+        }
+        Update: {
+          id?: number
+          last_tick_at?: string | null
+          locked_until?: string | null
+          paused_reason?: string | null
+          token?: string
+        }
+        Relationships: []
+      }
+      ai_workflow_runs: {
+        Row: {
+          attempt: number
+          created_at: string
+          diagnosis: string | null
+          duration_ms: number | null
+          error: string | null
+          error_status: number | null
+          event_payload: Json | null
+          finished_at: string | null
+          id: string
+          idempotency_key: string
+          input: string
+          output: string | null
+          retry_of: string | null
+          started_at: string | null
+          status: string
+          trigger_source: string
+          triggered_by: string | null
+          workflow_id: string
+        }
+        Insert: {
+          attempt?: number
+          created_at?: string
+          diagnosis?: string | null
+          duration_ms?: number | null
+          error?: string | null
+          error_status?: number | null
+          event_payload?: Json | null
+          finished_at?: string | null
+          id?: string
+          idempotency_key: string
+          input: string
+          output?: string | null
+          retry_of?: string | null
+          started_at?: string | null
+          status?: string
+          trigger_source?: string
+          triggered_by?: string | null
+          workflow_id: string
+        }
+        Update: {
+          attempt?: number
+          created_at?: string
+          diagnosis?: string | null
+          duration_ms?: number | null
+          error?: string | null
+          error_status?: number | null
+          event_payload?: Json | null
+          finished_at?: string | null
+          id?: string
+          idempotency_key?: string
+          input?: string
+          output?: string | null
+          retry_of?: string | null
+          started_at?: string | null
+          status?: string
+          trigger_source?: string
+          triggered_by?: string | null
+          workflow_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_workflow_runs_retry_of_fkey"
+            columns: ["retry_of"]
+            isOneToOne: false
+            referencedRelation: "ai_workflow_runs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ai_workflow_runs_workflow_id_fkey"
+            columns: ["workflow_id"]
+            isOneToOne: false
+            referencedRelation: "ai_workflows"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ai_workflows: {
         Row: {
           config: Json | null
           created_at: string
           description: string | null
+          event_enabled: boolean
+          event_trigger: string | null
           id: string
           is_active: boolean | null
           last_run_at: string | null
           name: string
+          next_run_at: string | null
+          schedule_enabled: boolean
+          schedule_interval_minutes: number | null
           total_runs: number | null
           trigger_type: string | null
           updated_at: string
@@ -247,10 +354,15 @@ export type Database = {
           config?: Json | null
           created_at?: string
           description?: string | null
+          event_enabled?: boolean
+          event_trigger?: string | null
           id?: string
           is_active?: boolean | null
           last_run_at?: string | null
           name: string
+          next_run_at?: string | null
+          schedule_enabled?: boolean
+          schedule_interval_minutes?: number | null
           total_runs?: number | null
           trigger_type?: string | null
           updated_at?: string
@@ -259,10 +371,15 @@ export type Database = {
           config?: Json | null
           created_at?: string
           description?: string | null
+          event_enabled?: boolean
+          event_trigger?: string | null
           id?: string
           is_active?: boolean | null
           last_run_at?: string | null
           name?: string
+          next_run_at?: string | null
+          schedule_enabled?: boolean
+          schedule_interval_minutes?: number | null
           total_runs?: number | null
           trigger_type?: string | null
           updated_at?: string
