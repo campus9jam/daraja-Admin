@@ -123,7 +123,7 @@ begin
     where id = v_user_id;
 
   insert into public.lee_transactions(user_id,type,amount,balance_before,balance_after,event_type,reference_id,description,metadata)
-  values(v_user_id,'credit',v_voucher.lee_amount,v_before,v_after,'voucher_redemption',v_voucher.id,
+  values(v_user_id,'bonus',v_voucher.lee_amount,v_before,v_after,'voucher_redemption',v_voucher.id,
          'LEE voucher redemption',jsonb_build_object('campaign_id',v_campaign.id,'voucher_id',v_voucher.id));
 
   update public.lee_vouchers
