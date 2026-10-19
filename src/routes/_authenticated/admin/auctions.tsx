@@ -34,7 +34,7 @@ function AuctionsPage(){
   if(title.trim().length<3) throw new Error("Auction title must have at least 3 characters.");
   if(!startTime||!endTime||Number.isNaN(start.getTime())||Number.isNaN(end.getTime())||end<=start) throw new Error("Choose a valid start and end time.");
   if(!Number.isFinite(bid)||bid<=0|| (res!==null&&(!Number.isFinite(res)||res<bid))) throw new Error("Starting bid must be positive; reserve must be at least the starting bid.");
-  const {error}=await supabase.from("auctions").insert({title:title.trim(),description:description.trim()||null,category:category.trim()||"General",starting_bid:bid,current_bid:bid,bid_count:0,reserve_price:res,status:"scheduled",start_time:start.toISOString(),end_time:end.toISOString(),seller_id:user.id,image_url:imageUrl.trim()||null});
+  const {error}=await supabase.from("auctions").insert({title:title.trim(),description:description.trim()||null,category:category.trim()||"General",starting_bid:bid,current_bid:bid,bid_count:0,reserve_price:res,status:"upcoming",start_time:start.toISOString(),end_time:end.toISOString(),seller_id:user.id,image_url:imageUrl.trim()||null});
   if(error) throw error;
  },onSuccess:()=>{toast.success("Auction scheduled");setTitle("");setDescription("");setReserve("");setImageUrl("");qc.invalidateQueries({queryKey:KEY});},onError:(e:any)=>toast.error(e.message||"Could not create auction.")});
  const update=useMutation({mutationFn:async({id,status}:{id:string;status:string})=>{
