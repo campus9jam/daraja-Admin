@@ -8,7 +8,7 @@ The application is TanStack Start (React) with Nitro. Vercel must build it throu
 - Root directory: repository root (the directory containing `package.json`)
 - Build command: leave blank / framework default
 - Output directory: leave blank / framework default
-- Install command: `npm install` (or the detected npm default)
+- Install command: `npm ci` (deterministic install from the committed lockfile)
 - Node.js: 22
 - Do not set a static SPA rewrite; TanStack Start routes and server functions are handled by Nitro.
 
