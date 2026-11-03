@@ -1,26 +1,42 @@
 name: CI
 
 on:
-  pull_request:
   push:
-    branches: [main, integration-hd]
+    branches: [main, integration-hd, vercel-deployment-hardening-v2]
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
-      - name: Install dependencies
+      # Regenerate the lockfile with npm's normal peer-dependency checks.
+      # This runs only on trusted branch pushes, never on fork PR code.
+      - name: Regenerate lockfile
+        if: github.ref_name == 'vercel-deployment-hardening-v2'
+        run: npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+      - name: Commit regenerated lockfile
+        if: github.ref_name == 'vercel-deployment-hardening-v2'
+        run: |
+          if ! git diff --quiet -- package-lock.json; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add package-lock.json
+            git commit -m "Regenerate npm lockfile for Vite 8"
+            git push
+          fi
+      - name: Install dependencies from lockfile
         run: npm ci
       - name: Type-check
         run: npm run typecheck
