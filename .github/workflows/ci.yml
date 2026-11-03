@@ -21,12 +21,12 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci
+      - name: Production build
+        run: npm run build
       - name: Type-check
         run: npm run typecheck
       - name: Lint
         run: npm run lint
-      - name: Production build
-        run: npm run build
         env:
           VITE_SUPABASE_URL: https://example.supabase.co
           VITE_SUPABASE_PUBLISHABLE_KEY: ci-placeholder-publishable-key
