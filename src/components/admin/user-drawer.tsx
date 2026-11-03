@@ -13,17 +13,20 @@ export function UserDrawer({ id, onClose }: { id: string | null; onClose: () => 
     enabled: !!id,
     queryKey: ["admin-user", id],
     queryFn: async () => {
-      const [profile, wallet, transactions, orders, applications] = await Promise.all([
-        supabase.from("profiles")
-          .select("id, username, display_name, avatar_url, bio, role, created_at, lee_balance, lee_lifetime_earned, lee_lifetime_spent")
-          .eq("id", id!)
-          .maybeSingle(),
-        supabase.from("user_wallets").select("lee_balance").eq("user_id", id!).maybeSingle(),
-        supabase.from("lee_transactions")
-          .select("id, type, amount, balance_before, balance_after, event_type, description, created_at")
-          .eq("user_id", id!)
-          .order("created_at", { ascending: false })
-          .limit(30),
+      const profile = await supabase.from("profiles")
+        .select("id, username, display_name, avatar_url, bio, role, created_at, lee_balance, lee_lifetime_earned, lee_lifetime_spent")
+        .eq("id", id!)
+        .maybeSingle();
+      if (profile.error) throw profile.error;
+      if (!profile.data) throw new Error("User profile not found");
+
+      // Orders and applications have admin/moderator RLS boundaries. Only
+      // administrators can read the full cross-account order history.
+      if (me?.isAdmin !== true) {
+        return { profile: profile.data, orders: [], applications: [] };
+      }
+
+      const [orders, applications] = await Promise.all([
         supabase.from("orders")
           .select("id, status, total_amount, currency, created_at")
           .eq("user_id", id!)
@@ -34,16 +37,12 @@ export function UserDrawer({ id, onClose }: { id: string | null; onClose: () => 
           .eq("user_id", id!)
           .order("created_at", { ascending: false }),
       ]);
-
-      for (const result of [profile, wallet, transactions, orders, applications]) {
+      for (const result of [orders, applications]) {
         if (result.error) throw result.error;
       }
-      if (!profile.data) throw new Error("User profile not found");
 
       return {
         profile: profile.data,
-        wallet: wallet.data,
-        transactions: transactions.data ?? [],
         orders: orders.data ?? [],
         applications: applications.data ?? [],
       };
@@ -52,7 +51,7 @@ export function UserDrawer({ id, onClose }: { id: string | null; onClose: () => 
 
   const p = data?.profile;
   const isAdmin = me?.isAdmin === true;
-  const balance = Number(data?.wallet?.lee_balance ?? p?.lee_balance ?? 0);
+  const balance = Number(p?.lee_balance ?? 0);
 
   return (
     <Sheet open={!!id} onOpenChange={(open) => !open && onClose()}>
@@ -120,21 +119,9 @@ export function UserDrawer({ id, onClose }: { id: string | null; onClose: () => 
                   <div className="font-mono text-lg">{Number(p.lee_lifetime_spent).toLocaleString()}</div>
                 </div>
               </div>
-              <div className="divide-y divide-border/60 rounded border border-border/60">
-                {data!.transactions.length === 0 && <div className="p-3 text-xs text-muted-foreground">No LEE transactions.</div>}
-                {data!.transactions.map((transaction) => (
-                  <div key={transaction.id} className="flex items-center justify-between gap-3 p-3 text-xs">
-                    <div>
-                      <div className="font-medium capitalize">{transaction.event_type.replaceAll("_", " ")}</div>
-                      <div className="text-muted-foreground">{transaction.description ?? transaction.type} · {new Date(transaction.created_at).toLocaleString()}</div>
-                    </div>
-                    <div className="text-right font-mono">
-                      <div>{Number(transaction.amount).toLocaleString()} LEE</div>
-                      <div className="text-muted-foreground">Balance: {Number(transaction.balance_after).toLocaleString()}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <p className="text-xs text-muted-foreground">
+                Account balances are read from the member profile. Detailed ledger entries remain protected by account-level RLS.
+              </p>
             </TabsContent>
 
             <TabsContent value="orders" className="mt-4">
