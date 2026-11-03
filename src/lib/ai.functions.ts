@@ -2,15 +2,21 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
-const STAFF = ["super_admin", "admin", "moderator", "support"];
-const ADMIN = ["super_admin", "admin"];
+const STAFF = ["admin", "moderator", "editor", "curator"];
+const ADMIN = ["admin"];
 export const WORKFLOW_EVENTS = [
   "orders.insert", "support_tickets.insert", "moderation_reports.insert", "products.insert", "tailoring_orders.insert",
 ] as const;
 
 async function requireRole(context: any, allowed: string[]) {
-  const { data: roles } = await context.supabase.from("user_roles").select("role").eq("user_id", context.userId);
-  if (!(roles ?? []).some((r: any) => allowed.includes(r.role))) throw new Error("Forbidden");
+  const { data: profile, error } = await context.supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", context.userId)
+    .maybeSingle();
+
+  if (error) throw new Error("Unable to verify staff permissions");
+  if (!profile?.role || !allowed.includes(profile.role)) throw new Error("Forbidden");
 }
 
 export const runAiWorkflow = createServerFn({ method: "POST" })
