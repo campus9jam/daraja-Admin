@@ -3,6 +3,8 @@ name: CI
 on:
   push:
     branches: [main, integration-hd, vercel-deployment-hardening-v2]
+  pull_request:
+    branches: [main, integration-hd]
 
 permissions:
   contents: read
