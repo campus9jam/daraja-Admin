@@ -2,7 +2,6 @@
 // Vite embeds these values in the public client bundle by design.
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "./types";
-import { brokeredPreviewStorage } from "./previewAuthStorage";
 
 function normalizedUrl(value?: string) {
   return value?.trim().replace(/\/+$/, "").replace(/\/(rest\/v1|auth\/v1)$/, "") || "";
@@ -24,7 +23,6 @@ function createSupabaseClient() {
 
   return createClient<Database>(url, key, {
     auth: {
-      storage: brokeredPreviewStorage(),
       persistSession: true,
       autoRefreshToken: true,
       detectSessionInUrl: true,
