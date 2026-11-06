@@ -25,7 +25,7 @@ export function AuctionDrawer({ id, onClose }: { id: string | null; onClose: () 
     enabled: open,
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("bids").select("id, amount, bidder_id, created_at")
+        .from("auction_bids").select("id, amount, bidder_id, created_at")
         .eq("auction_id", id!).order("amount", { ascending: false }).limit(50);
       if (error) throw error;
       return data ?? [];
@@ -35,7 +35,7 @@ export function AuctionDrawer({ id, onClose }: { id: string | null; onClose: () 
   useEffect(() => {
     if (!open) return;
     const ch = supabase.channel(`auction-${id}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "bids", filter: `auction_id=eq.${id}` }, () => {
+      .on("postgres_changes", { event: "*", schema: "public", table: "auction_bids", filter: `auction_id=eq.${id}` }, () => {
         qc.invalidateQueries({ queryKey: ["auction-bids", id] });
         qc.invalidateQueries({ queryKey: ["auction", id] });
       })
@@ -44,24 +44,10 @@ export function AuctionDrawer({ id, onClose }: { id: string | null; onClose: () 
     return () => { supabase.removeChannel(ch); };
   }, [id, open, qc, refetch]);
 
-  const close = useMutation({
-    mutationFn: async () => {
-      const { data, error } = await supabase.rpc("close_auction", { _auction_id: id! });
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
-      toast.success("Auction closed");
-      qc.invalidateQueries({ queryKey: ["admin-auctions"] });
-      refetch();
-    },
-    onError: (e: any) => toast.error(e.message),
-  });
-
   const setStatus = useMutation({
     mutationFn: async (status: string) => {
       const patch: any = { status, updated_at: new Date().toISOString() };
-      if (status === "live" && !auction?.starts_at) patch.starts_at = new Date().toISOString();
+      if (status === "live" && !auction?.start_time) patch.start_time = new Date().toISOString();
       const { error } = await supabase.from("auctions").update(patch).eq("id", id!);
       if (error) throw error;
     },
@@ -82,17 +68,17 @@ export function AuctionDrawer({ id, onClose }: { id: string | null; onClose: () 
               <Badge variant="secondary" className="capitalize">{auction.status}</Badge>
             </div>
             <div className="grid grid-cols-2 gap-3">
-              <Metric label="Starting" value={`KES ${Number(auction.starting_price ?? 0).toLocaleString()}`} />
+              <Metric label="Starting" value={`KES ${Number(auction.starting_bid ?? 0).toLocaleString()}`} />
               <Metric label="Current bid" value={`KES ${Number(auction.current_bid ?? 0).toLocaleString()}`} />
               <Metric label="Reserve" value={auction.reserve_price ? `KES ${Number(auction.reserve_price).toLocaleString()}` : "—"} />
-              <Metric label="Total bids" value={String(auction.total_bids ?? 0)} />
-              <Metric label="Starts" value={auction.starts_at ? new Date(auction.starts_at).toLocaleString() : "—"} />
-              <Metric label="Ends" value={auction.ends_at ? new Date(auction.ends_at).toLocaleString() : "—"} />
+              <Metric label="Total bids" value={String(auction.bid_count ?? 0)} />
+              <Metric label="Starts" value={auction.start_time ? new Date(auction.start_time).toLocaleString() : "—"} />
+              <Metric label="Ends" value={auction.end_time ? new Date(auction.end_time).toLocaleString() : "—"} />
             </div>
 
             <div className="flex flex-wrap gap-2">
               {auction.status === "scheduled" && <Button size="sm" onClick={() => setStatus.mutate("live")} disabled={setStatus.isPending}>Go live</Button>}
-              {auction.status === "live" && <Button size="sm" onClick={() => close.mutate()} disabled={close.isPending}>Close & settle</Button>}
+              {auction.status === "live" && <Button size="sm" variant="outline" disabled title="Settlement RPC is not deployed">Settlement unavailable</Button>}
               {(auction.status === "scheduled" || auction.status === "live") && (
                 <Button size="sm" variant="outline" onClick={() => setStatus.mutate("cancelled")} disabled={setStatus.isPending}>Cancel</Button>
               )}

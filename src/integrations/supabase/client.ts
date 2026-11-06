@@ -1,30 +1,28 @@
-// Shared Supabase client for the House of Daraja production backend.
+// Browser-safe Supabase client. Only VITE_ values may be read here;
+// Vite embeds these values in the public client bundle by design.
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "./types";
-import { brokeredPreviewStorage } from "./previewAuthStorage";
 
 function normalizedUrl(value?: string) {
   return value?.trim().replace(/\/+$/, "").replace(/\/(rest\/v1|auth\/v1)$/, "") || "";
 }
 
 function createSupabaseClient() {
-  const url = normalizedUrl(import.meta.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL);
-  const key = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY
-    || import.meta.env.VITE_SUPABASE_ANON_KEY
-    || process.env.SUPABASE_PUBLISHABLE_KEY
-    || process.env.SUPABASE_ANON_KEY;
+  const url = normalizedUrl(import.meta.env.VITE_SUPABASE_URL);
+  const key =
+    import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ||
+    import.meta.env.VITE_SUPABASE_ANON_KEY;
 
   if (!url || !key) {
     const missing = [
       ...(!url ? ["VITE_SUPABASE_URL"] : []),
       ...(!key ? ["VITE_SUPABASE_PUBLISHABLE_KEY"] : []),
     ];
-    throw new Error(`Missing Supabase environment variable(s): ${missing.join(", ")}`);
+    throw new Error(`Missing public Supabase environment variable(s): ${missing.join(", ")}`);
   }
 
   return createClient<Database>(url, key, {
     auth: {
-      storage: brokeredPreviewStorage(),
       persistSession: true,
       autoRefreshToken: true,
       detectSessionInUrl: true,

@@ -19,7 +19,7 @@ function VendorsPage(){
   if(error) throw error; return data??[];
  }});
  const moderate=useMutation({mutationFn:async({id,action}:{id:string;action:"approve"|"reject"})=>{
-  const {data,error}=await supabase.rpc("moderate_vendor_application",{p_application_id:id,p_action:action,p_note:notes[id]?.trim()||null});
+  const {data,error}=await supabase.rpc("moderate_vendor_application",{p_application_id:id,p_action:action,...(notes[id]?.trim()?{p_note:notes[id].trim()}:{})});
   if(error) throw error; return data;
  },onSuccess:(_data,vars)=>{toast.success(vars.action==="approve"?"Vendor approved and store activated":"Application rejected");qc.invalidateQueries({queryKey:KEY});qc.invalidateQueries({queryKey:["hd-count","vendor_applications","id"]});},onError:(e:any)=>toast.error(e.message||"Could not review application.")});
  return <div className="space-y-5">
