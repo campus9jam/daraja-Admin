@@ -44,18 +44,6 @@ export function AuctionDrawer({ id, onClose }: { id: string | null; onClose: () 
     return () => { supabase.removeChannel(ch); };
   }, [id, open, qc, refetch]);
 
-  const close = useMutation({
-    mutationFn: async () => {
-      throw new Error("Auction settlement is not enabled: the production database has no verified close-and-settle RPC.");
-    },
-    onSuccess: () => {
-      toast.success("Auction closed");
-      qc.invalidateQueries({ queryKey: ["admin-auctions"] });
-      refetch();
-    },
-    onError: (e: any) => toast.error(e.message),
-  });
-
   const setStatus = useMutation({
     mutationFn: async (status: string) => {
       const patch: any = { status, updated_at: new Date().toISOString() };
@@ -84,8 +72,8 @@ export function AuctionDrawer({ id, onClose }: { id: string | null; onClose: () 
               <Metric label="Current bid" value={`KES ${Number(auction.current_bid ?? 0).toLocaleString()}`} />
               <Metric label="Reserve" value={auction.reserve_price ? `KES ${Number(auction.reserve_price).toLocaleString()}` : "—"} />
               <Metric label="Total bids" value={String(auction.bid_count ?? 0)} />
-              <Metric label="Starts" value={auction.start_time ? new Date(auction.starts_at).toLocaleString() : "—"} />
-              <Metric label="Ends" value={auction.end_time ? new Date(auction.ends_at).toLocaleString() : "—"} />
+              <Metric label="Starts" value={auction.start_time ? new Date(auction.start_time).toLocaleString() : "—"} />
+              <Metric label="Ends" value={auction.end_time ? new Date(auction.end_time).toLocaleString() : "—"} />
             </div>
 
             <div className="flex flex-wrap gap-2">
